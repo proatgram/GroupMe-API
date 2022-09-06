@@ -22,6 +22,9 @@
 #include <fstream>
 #include <vector>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <nlohmann/json.hpp>
 
 #include "base/Attatchment.h"
 
@@ -32,6 +35,9 @@ namespace GroupMe {
             Picture(std::string accessToken, std::filesystem::path path);
 
             Picture(std::string accessToken, std::string contentURL);
+
+            bool uploadPicture();
+
         private:
             web::http::http_request m_request;
             
@@ -40,7 +46,9 @@ namespace GroupMe {
             web::http::http_headers m_header;
             
             std::vector<unsigned char> m_binaryData;
-     
+
+            nlohmann::json m_json;
+
     };
 
 }

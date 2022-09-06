@@ -22,9 +22,8 @@
 #include "GroupMe_API.h"
 
 int main(int argc, char** argv) {
-    GroupMe::Authenticator auth("http://127.0.0.1:5678", "https://oauth.groupme.com/oauth/authorize?client_id=Tscatf1rOsIcqr7xRAQgCEoGU9xiwRgIDqPQPszFcjwHuZj6");
 
-    GroupMe::Main test(auth.getToken());
+    GroupMe::Main test("***REMOVED***");
 
     return EXIT_SUCCESS;
 }

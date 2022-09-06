@@ -21,30 +21,41 @@
 using namespace GroupMe;
 
 Picture::Picture(std::string accessToken, std::filesystem::path path) :
-    Attatchment(path),
+    Attatchment(path, Attatchment::Types::Picture),
     m_request(),
     m_client("https://image.groupme.com/pictures"),
     m_header()
 {
+    m_request.set_method(web::http::methods::POST);
     m_request.headers().add("X-Access-Token", accessToken);
     m_request.headers().add("Content-Type", "image/jpeg");
-    m_request.set_request_uri("https://image.groupme.com/pictures");
-    std::fstream file(path, std::ios::out | std::ios::in | std::ios::binary);
+
+    std::fstream file(m_contentPath, std::ios::in | std::ios::binary);
+    if (!file) {
+        throw std::fstream::failure("Failed to open file.");
+    }
     file.seekg(0, std::ios::end);
     int size = file.tellg();
     file.seekg(0);
+    
     for (unsigned int i = 0; i < size; i++) {
         m_binaryData.push_back(file.get());
     }
+    
     m_request.set_body(m_binaryData);
-    std::printf("%s\n", m_client.base_uri().path().c_str());
-    m_client.request(m_request).then([](web::http::http_response response) {
-        std::printf("%u\n", response.status_code());
+    
+    m_client.request(m_request).then([this](web::http::http_response response) {
+            std::stringstream strm(response.extract_string(true).get());
+            strm >> m_json;
+            m_contentURL = m_json["payload"]["picture_url"].dump(1);
+            m_contentURL.erase(m_contentURL.cend() - 1);
+            m_contentURL.erase(m_contentURL.cbegin());
+        
     }).wait();
 }
 
 Picture::Picture(std::string accessToken, std::string contentURL) :
-    Attatchment(contentURL),
+    Attatchment(contentURL, Attatchment::Types::Picture),
     m_client("https://image.groupme.com/pictures"),
     m_header()
 {

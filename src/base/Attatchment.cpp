@@ -20,18 +20,26 @@
 
 using namespace GroupMe;
 
-Attatchment::Attatchment(std::filesystem::path contentPath) :
-    m_type(),
+Attatchment::Attatchment(std::filesystem::path contentPath, Attatchment::Types type) :
+    m_type(type),
     m_contentPath(contentPath),
     m_contentURL()
 {
 
 }
 
-Attatchment::Attatchment(std::string contentURL) :
-    m_type(),
+Attatchment::Attatchment(std::string contentURL, Attatchment::Types type) :
+    m_type(type),
     m_contentPath(),
     m_contentURL(contentURL)
 {
 
+}
+
+Attatchment::Types Attatchment::getType() {
+    return m_type;
+}
+
+std::string Attatchment::getContentURL() {
+    return m_contentURL;
 }

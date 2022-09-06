@@ -35,16 +35,25 @@ namespace GroupMe {
                 Video
             };
             
-            Attatchment(std::filesystem::path contentPath);
+            Attatchment(std::filesystem::path contentPath, Attatchment::Types type);
 
-            Attatchment(std::string contentURL);
+            Attatchment(std::string contentURL, Attatchment::Types type);
 
-        private:
+            std::string getContentURL();
+
+            Attatchment::Types getType();
+
+        protected:
+
             Attatchment::Types m_type;
-
+        
             std::filesystem::path m_contentPath;
 
             std::string m_contentURL;
+        
+        private:
+
+
 
     };
 
