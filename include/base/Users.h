@@ -21,32 +21,37 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <vector>
+#include <memory> 
+#include <stdexcept>
 
-#include "base/Authenticator.h"
-#include "base/Picture.h"
+#include "base/User.h"
 
 namespace GroupMe {
-
-    class Main {
+    
+    class Users {
         public:
+            
+            Users();
+            
+            enum class Policy {
+                Strict,
+                Faithful
+            };
 
-            Main(std::string token);
+            bool addUser(std::shared_ptr<User> user, Users::Policy policy = Users::Policy::Faithful);
 
-            void getGroups();
+            bool removeUser(std::shared_ptr<User> user, Users::Policy policy = Users::Policy::Faithful);
 
-            void getChats();
+            std::shared_ptr<User> grabUser(std::string userID, Users::Policy policy = Users::Policy::Faithful);
 
-            void createChat();
-
-            void createGroup(std::string groupName);
-
-            bool changeName(std::string name);
-
-            bool changeAvatar(std::string path);
-
+            bool userExists(std::string userID, Users::Policy policy = Users::Policy::Faithful);
+                
+            bool userExists(std::shared_ptr<User>, Users::Policy policy = Users::Policy::Faithful);
+            
         private:
         
-            std::string m_token;
+            std::vector<std::shared_ptr<User>> m_users;
     };
 
 }

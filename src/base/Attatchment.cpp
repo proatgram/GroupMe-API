@@ -16,39 +16,22 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "GroupMe_API.h"
+#include "base/Attatchment.h"
 
 using namespace GroupMe;
 
-Main::Main(std::string token) :
-    m_token(token)
-
+Attatchment::Attatchment(std::filesystem::path contentPath) :
+    m_type(),
+    m_contentPath(contentPath),
+    m_contentURL()
 {
-    Picture m_picture(m_token, std::filesystem::path("/home/thetimbrick/Pictures/index.jpeg"));
-}
-
-bool Main::changeAvatar(std::string path) {
-
-    return true;
-}
-
-bool Main::changeName(std::string name) {
-
-    return true;
-}
-
-void Main::createChat() {
 
 }
 
-void Main::createGroup(std::string groupName) {
-
-}
-
-void Main::getChats() {
-
-}
-
-void Main::getGroups() {
+Attatchment::Attatchment(std::string contentURL) :
+    m_type(),
+    m_contentPath(),
+    m_contentURL(contentURL)
+{
 
 }

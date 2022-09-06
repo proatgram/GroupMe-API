@@ -11,12 +11,20 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 file(GLOB_RECURSE libGroupMe-API_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
-file(GLOB_RECURSE libGroupMe-API_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h}" "${CMAKE_SOURCE_DIR}/include/*.hpp")
+file(GLOB_RECURSE libGroupMe-API_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h" "${CMAKE_SOURCE_DIR}/include/*.hpp")
 
-add_library(GroupMe SHARED libGroupMe-API_SOURCES)
+pkg_check_modules(SSL openssl REQUIRED)
 
-target_include_directories(GroupMe PUBLIC libGroupMe-API_HEADERS)
+find_package(cpprestsdk REQUIRED CONFIG)
 
-add_executable(test "${CMAKE_SOURCE_DIR}/tests/main/src/*.cpp")
+add_library(GroupMe SHARED ${libGroupMe-API_SOURCES})
 
-target_include_directories(test "${CMAKE_SOURCE_DIR}/tests/main/include/*h")
+target_include_directories(GroupMe PUBLIC "${CMAKE_SOURCE_DIR}/include")
+
+target_link_libraries(GroupMe cpprestsdk::cpprest ${SSL_LINK_LIBRARIES})
+
+add_executable(test "${CMAKE_SOURCE_DIR}/tests/main/src/main.cpp")
+
+target_include_directories(test PRIVATE "${CMAKE_SOURCE_DIR}/tests/main/include/" "${CMAKE_SOURCE_DIR}/include")
+
+target_link_libraries(test cpprestsdk::cpprest "${CMAKE_SOURCE_DIR}/build/libGroupMe.so" ${SSL_LINK_LIBRARIES})

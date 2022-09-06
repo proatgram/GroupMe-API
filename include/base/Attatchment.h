@@ -16,39 +16,36 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "GroupMe_API.h"
+#pragma once
 
-using namespace GroupMe;
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <filesystem>
+#include <memory>
+#include <cpprest/http_client.h>
+#include <cpprest/uri.h>
 
-Main::Main(std::string token) :
-    m_token(token)
+namespace GroupMe {
 
-{
-    Picture m_picture(m_token, std::filesystem::path("/home/thetimbrick/Pictures/index.jpeg"));
-}
+    class Attatchment {
+        public:
+            enum class Types {
+                Picture,
+                Video
+            };
+            
+            Attatchment(std::filesystem::path contentPath);
 
-bool Main::changeAvatar(std::string path) {
+            Attatchment(std::string contentURL);
 
-    return true;
-}
+        private:
+            Attatchment::Types m_type;
 
-bool Main::changeName(std::string name) {
+            std::filesystem::path m_contentPath;
 
-    return true;
-}
+            std::string m_contentURL;
 
-void Main::createChat() {
+    };
 
-}
-
-void Main::createGroup(std::string groupName) {
-
-}
-
-void Main::getChats() {
-
-}
-
-void Main::getGroups() {
-
-}
+} 

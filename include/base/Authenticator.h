@@ -16,39 +16,39 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "GroupMe_API.h"
+#pragma once
 
-using namespace GroupMe;
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <cpprest/http_listener.h>
+#include <cpprest/json.h>
 
-Main::Main(std::string token) :
-    m_token(token)
+namespace GroupMe {
+    class Authenticator {
+        public:
+            Authenticator(std::string callbackURL, std::string appURL);
+            
+            std::string getToken();
 
-{
-    Picture m_picture(m_token, std::filesystem::path("/home/thetimbrick/Pictures/index.jpeg"));
-}
+        private:
+            
+            void handleGET(web::http::http_request request);
 
-bool Main::changeAvatar(std::string path) {
+            std::string m_callback;
 
-    return true;
-}
+            std::string m_app;
 
-bool Main::changeName(std::string name) {
+            std::string m_token;
 
-    return true;
-}
+            web::http::experimental::listener::http_listener m_listener;
 
-void Main::createChat() {
+            bool m_ready;
 
-}
+            bool m_error;
 
-void Main::createGroup(std::string groupName) {
-
-}
-
-void Main::getChats() {
-
-}
-
-void Main::getGroups() {
-
+            std::mutex m_mutex;
+            
+            std::condition_variable m_cv;
+    };
 }

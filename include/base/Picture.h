@@ -16,39 +16,31 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "GroupMe_API.h"
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <iostream>
 
-using namespace GroupMe;
+#include "base/Attatchment.h"
 
-Main::Main(std::string token) :
-    m_token(token)
+namespace GroupMe {
 
-{
-    Picture m_picture(m_token, std::filesystem::path("/home/thetimbrick/Pictures/index.jpeg"));
-}
+    class Picture : public Attatchment {
+        public:
+            Picture(std::string accessToken, std::filesystem::path path);
 
-bool Main::changeAvatar(std::string path) {
-
-    return true;
-}
-
-bool Main::changeName(std::string name) {
-
-    return true;
-}
-
-void Main::createChat() {
-
-}
-
-void Main::createGroup(std::string groupName) {
-
-}
-
-void Main::getChats() {
-
-}
-
-void Main::getGroups() {
+            Picture(std::string accessToken, std::string contentURL);
+        private:
+            web::http::http_request m_request;
+            
+            web::http::client::http_client m_client;
+            
+            web::http::http_headers m_header;
+            
+            std::vector<unsigned char> m_binaryData;
+     
+    };
 
 }
