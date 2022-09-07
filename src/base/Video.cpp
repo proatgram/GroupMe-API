@@ -16,40 +16,18 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "base/Attatchment.h"
+#include "base/Video.h"
 
 using namespace GroupMe;
 
-Attatchment::Attatchment(std::filesystem::path contentPath, Attatchment::Types type) :
-    m_type(type),
-    m_contentPath(contentPath),
-    m_contentURL()
+Video::Video(std::string accessToken, std::filesystem::file file) :
+    Attatchment(file, Attatchment::Types::Video),
+    m_request(),
+    m_client("https://video.groupme.com/transcode"),
+    m_header(),
+    m_json(),
+    m_binaryData()
 {
+    m_request.set_method(web::http::methods::POST);
 
-}
-
-Attatchment::Attatchment(std::string contentBinary, Attatchment::Types type) :
-    m_type(type),
-    m_contentPath(),
-    m_contentURL(),
-    m_contentBinary(contentBinary)
-{
-
-}
-
-Attatchment::Attatchment(web::uri contentURL, Attatchment::Types type) :
-    m_type(type),
-    m_contentPath(),
-    m_contentURL(contentURL),
-    m_contentBinary()
-{
-
-}
-
-Attatchment::Types Attatchment::getType() {
-    return m_type;
-}
-
-web::uri Attatchment::getContentURL() {
-    return m_contentURL;
 }

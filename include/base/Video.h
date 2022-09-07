@@ -22,41 +22,32 @@
 #include <cstdlib>
 #include <string>
 #include <filesystem>
-#include <memory>
-#include <cpprest/http_client.h>
-#include <cpprest/uri.h>
+#include <nlohmann/json.hpp>
+
+#include "Attatchment.h"
 
 namespace GroupMe {
 
-    class Attatchment {
-        public:
-            enum class Types {
-                Picture,
-                Video
-            };
-            
-            Attatchment(std::filesystem::path contentPath, Attatchment::Types type);
+        class Video : public Attatchment {
+            public:
+                Video(std::string accessToken, std::filesystem::path path);
 
-            Attatchment(web::uri contentURL, Attatchment::Types type);
+                Video(std::string accessToken, std::string contentString);
 
-            Attatchment(std::string contentBinary, Attatchment::Types type);
+                Video(std::string accessToken, web::uri contentURL);
 
-            web::uri getContentURL();
+                bool upload();
 
-            Attatchment::Types getType();
+            private:
+                web::http::http_request m_request;
 
-        protected:
+                web::http::client::http_client m_client;
 
-            Attatchment::Types m_type;
-        
-            std::filesystem::path m_contentPath;
+                web::http::http_headers m_header;
 
-            web::uri m_contentURL;
+                nlohmann::json m_json;
 
-            std::string m_contentBinary;
-        
-        private:
+                std::string m_binaryData;
+        };
 
-    };
-
-} 
+}

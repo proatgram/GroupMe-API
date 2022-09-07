@@ -45,10 +45,9 @@ namespace GroupMe {
             
             web::http::http_headers m_header;
             
-            std::vector<unsigned char> m_binaryData;
-
             nlohmann::json m_json;
 
+            std::vector<unsigned char> m_binaryData;
     };
 
 }

@@ -47,9 +47,10 @@ Picture::Picture(std::string accessToken, std::filesystem::path path) :
     m_client.request(m_request).then([this](web::http::http_response response) {
             std::stringstream strm(response.extract_string(true).get());
             strm >> m_json;
-            m_contentURL = m_json["payload"]["picture_url"].dump(1);
-            m_contentURL.erase(m_contentURL.cend() - 1);
-            m_contentURL.erase(m_contentURL.cbegin());
+            std::string temp = m_json["payload"]["picture_url"].dump(1);
+            temp.erase(temp.cend() - 1);
+            temp.erase(temp.cbegin());
+            m_contentURL = temp;
         
     }).wait();
 }
