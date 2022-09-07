@@ -49,6 +49,7 @@ namespace GroupMe {
 
             nlohmann::json m_json;
 
+            std::fstream m_file;
     };
 
 }

@@ -24,7 +24,8 @@ Main::Main(std::string token) :
     m_token(token)
 
 {
-    Picture m_picture(m_token, std::filesystem::path("/home/thetimbrick/Pictures/index.jpeg"));
+    Picture picture(m_token, std::filesystem::path("/home/thetimbrick/Pictures/index.jpeg"));
+    std::printf("%d\n", picture.uploadPicture());
 }
 
 bool Main::changeAvatar(std::string path) {
