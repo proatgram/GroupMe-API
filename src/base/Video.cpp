@@ -29,5 +29,5 @@ Video::Video(std::string accessToken, std::filesystem::file file) :
     m_binaryData()
 {
     m_request.set_method(web::http::methods::POST);
-
+    m_request.headers().add("")
 }

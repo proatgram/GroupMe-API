@@ -24,41 +24,50 @@ Picture::Picture(std::string accessToken, std::filesystem::path path) :
     Attatchment(path, Attatchment::Types::Picture),
     m_request(),
     m_client("https://image.groupme.com/pictures"),
-    m_header()
+    m_header(),
+    m_file(path)
 {
     m_request.set_method(web::http::methods::POST);
     m_request.headers().add("X-Access-Token", accessToken);
     m_request.headers().add("Content-Type", "image/jpeg");
-
-    std::fstream file(m_contentPath, std::ios::in | std::ios::binary);
-    if (!file) {
+    if (!m_file) {
         throw std::fstream::failure("Failed to open file.");
     }
-    file.seekg(0, std::ios::end);
-    int size = file.tellg();
-    file.seekg(0);
+    m_file.seekg(0, std::ios::end);
+    int size = m_file.tellg();
+    m_file.seekg(0);
     
     for (unsigned int i = 0; i < size; i++) {
-        m_binaryData.push_back(file.get());
+        m_binaryData.push_back(m_file.get());
     }
-    
-    m_request.set_body(m_binaryData);
-    
-    m_client.request(m_request).then([this](web::http::http_response response) {
-            std::stringstream strm(response.extract_string(true).get());
-            strm >> m_json;
-            std::string temp = m_json["payload"]["picture_url"].dump(1);
-            temp.erase(temp.cend() - 1);
-            temp.erase(temp.cbegin());
-            m_contentURL = temp;
-        
-    }).wait();
 }
 
 Picture::Picture(std::string accessToken, std::string contentURL) :
     Attatchment(contentURL, Attatchment::Types::Picture),
+    m_request(),
     m_client("https://image.groupme.com/pictures"),
-    m_header()
+    m_header(),
+    m_json(),
+    m_binaryData(),
+    m_file()
 {
 
+}
+
+bool Picture::uploadPicture() {
+    m_request.set_body(m_binaryData);
+    bool did = true;
+    m_client.request(m_request).then([this, &did](web::http::http_response response) {
+            if (response.status_code() != 200) {
+                did = false;
+            }
+            std::stringstream strm(response.extract_string(true).get());
+            strm >> m_json;
+            std::string tmp = m_json["payload"]["picture_url"].dump(1);
+            tmp.erase(tmp.cend() - 1);
+            tmp.erase(tmp.cbegin());
+            m_contentURL = tmp;
+        
+    }).wait();
+    return did;
 }

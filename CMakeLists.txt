@@ -15,6 +15,8 @@ file(GLOB_RECURSE libGroupMe-API_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h" "${CM
 
 pkg_check_modules(SSL openssl REQUIRED)
 
+pkg_check_modules(NLOHMANN-JSON nlohmann_json REQUIRED)
+
 find_package(cpprestsdk REQUIRED CONFIG)
 
 add_library(GroupMe SHARED ${libGroupMe-API_SOURCES})
