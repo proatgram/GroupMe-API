@@ -42,7 +42,7 @@ Picture::Picture(std::string accessToken, std::filesystem::path path) :
     }
 }
 
-Picture::Picture(std::string accessToken, std::string contentURL) :
+Picture::Picture(std::string accessToken, web::uri contentURL) :
     Attatchment(contentURL, Attatchment::Types::Picture),
     m_request(),
     m_client("https://image.groupme.com/pictures"),
@@ -60,6 +60,7 @@ bool Picture::uploadPicture() {
     m_client.request(m_request).then([this, &did](web::http::http_response response) {
             if (response.status_code() != 200) {
                 did = false;
+                return;
             }
             std::stringstream strm(response.extract_string(true).get());
             strm >> m_json;

@@ -20,8 +20,8 @@
 
 using namespace GroupMe;
 
-Video::Video(std::string accessToken, std::filesystem::file file) :
-    Attatchment(file, Attatchment::Types::Video),
+Video::Video(std::string accessToken, std::filesystem::file path) :
+    Attatchment(path, Attatchment::Types::Video),
     m_request(),
     m_client("https://video.groupme.com/transcode"),
     m_header(),
@@ -29,5 +29,64 @@ Video::Video(std::string accessToken, std::filesystem::file file) :
     m_binaryData()
 {
     m_request.set_method(web::http::methods::POST);
-    m_request.headers().add("")
+    m_request.headers().add("X-Access-Token", accessToken);
+
+    std::fstream file(m_contentPath.string(), std::ios::in | std::ios::binary);
+
+    if (!file) {
+        throw std::fstream::failure("Failed to open file.");
+    }
+    file.seekg(0, std::ios::end);
+    int size = file.tellg();
+    file.seekg(0);
+
+    for (unsigned int i = 0; i < size; i++) {
+        m_binaryData += file.get();
+    }
+    std::printf("%s\n", m_binaryData.c_str());
+}
+
+Video::Video(std::string accessToken, std::string contentString) :
+    Attatchment(contentString, Attatchment::Types::Video),
+    m_request(),
+    m_client("https://video.groupme.com/transcode"),
+    m_header(),
+    m_json(),
+    m_binaryData(contentString)
+{
+    m_request.set_method(web::http::methods::POST);
+    m_request.headers().add("X-Access-Token", accessToken);
+}
+
+Video::Video(std::string accessToken, web::uri contentURL) :
+    Attatchment(contentURL, Attatchment::Types::Video),
+    m_request(),
+    m_client("https://video.groupme.com/transcode"),
+    m_header(),
+    m_json(),
+    m_binaryData()
+{
+    m_contentURL = contentURL;
+    
+    m_request.set_method(web::http::methods::POST);
+    m_request.headers().add("X-Access-Token", accessToken);
+}
+
+bool Video::upload() {
+    m_request.set_body(m_contentBinary, "application/octet-strean");
+    bool did = true;
+    m_client.request(m_request).then([this, &did](web::http::http_response response) {
+        if (response.status_code() != 200) {
+            did = false;
+            return;
+        }
+        std::stringstream strm(response.extract_string(true).get());
+        strm >> m_json;
+        std::string tmp = m_json["payload"]["url"].dump(1);
+        tmp.erase(tmp.end() - 1);
+        tmp.erase(tmp.begin());
+        
+        m_contentURL = tmp;
+
+    });
 }

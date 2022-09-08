@@ -34,7 +34,7 @@ namespace GroupMe {
         public:
             Picture(std::string accessToken, std::filesystem::path path);
 
-            Picture(std::string accessToken, std::string contentURL);
+            Picture(std::string accessToken, web::uri contentURL);
 
             bool uploadPicture();
 
