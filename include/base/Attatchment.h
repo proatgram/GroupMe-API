@@ -39,7 +39,7 @@ namespace GroupMe {
 
             Attatchment(web::uri contentURL, Attatchment::Types type);
 
-            Attatchment(std::string contentBinary, Attatchment::Types type);
+            Attatchment(std::vector<unsigned char> contentBinary, Attatchment::Types type);
 
             web::uri getContentURL();
 
@@ -53,7 +53,7 @@ namespace GroupMe {
 
             web::uri m_contentURL;
 
-            std::string m_contentBinary;
+            std::vector<unsigned char> m_contentBinary;
         
         private:
 

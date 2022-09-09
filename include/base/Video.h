@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <string>
 #include <filesystem>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 #include "Attatchment.h"
@@ -32,7 +33,7 @@ namespace GroupMe {
             public:
                 Video(std::string accessToken, std::filesystem::path path);
 
-                Video(std::string accessToken, std::string contentString);
+                Video(std::string accessToken, std::vector<unsigned char> contentVector);
 
                 Video(std::string accessToken, web::uri contentURL);
 
@@ -47,7 +48,9 @@ namespace GroupMe {
 
                 nlohmann::json m_json;
 
-                std::string m_binaryData;
+                std::vector<unsigned char> m_binaryData;
+
+                std::string m_boundaries;
         };
 
 }
