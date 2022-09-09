@@ -20,7 +20,7 @@
 
 using namespace GroupMe;
 
-Video::Video(std::string accessToken, std::filesystem::file path) :
+Video::Video(std::string accessToken, std::filesystem::path path) :
     Attatchment(path, Attatchment::Types::Video),
     m_request(),
     m_client("https://video.groupme.com/transcode"),
@@ -30,7 +30,7 @@ Video::Video(std::string accessToken, std::filesystem::file path) :
 {
     m_request.set_method(web::http::methods::POST);
     m_request.headers().add("X-Access-Token", accessToken);
-
+    m_request.headers().add("X-Conversation-Id","***REMOVED***");
     std::fstream file(m_contentPath.string(), std::ios::in | std::ios::binary);
 
     if (!file) {
@@ -41,18 +41,17 @@ Video::Video(std::string accessToken, std::filesystem::file path) :
     file.seekg(0);
 
     for (unsigned int i = 0; i < size; i++) {
-        m_binaryData += file.get();
+        m_binaryData.push_back(file.get());
     }
-    std::printf("%s\n", m_binaryData.c_str());
 }
 
-Video::Video(std::string accessToken, std::string contentString) :
-    Attatchment(contentString, Attatchment::Types::Video),
+Video::Video(std::string accessToken, std::vector<unsigned char> contentVector) :
+    Attatchment(contentVector, Attatchment::Types::Video),
     m_request(),
     m_client("https://video.groupme.com/transcode"),
     m_header(),
     m_json(),
-    m_binaryData(contentString)
+    m_binaryData(contentVector)
 {
     m_request.set_method(web::http::methods::POST);
     m_request.headers().add("X-Access-Token", accessToken);
@@ -73,20 +72,36 @@ Video::Video(std::string accessToken, web::uri contentURL) :
 }
 
 bool Video::upload() {
-    m_request.set_body(m_contentBinary, "application/octet-strean");
+    for (unsigned int i = 0; i < 16; i++) {
+        m_boundaries.append(1, rand() % 25 + 65);
+    }
+    std::string tmp = "multipart/form-data;boundary=";
+    for (unsigned int i = 0; i < m_boundaries.size(); i++) {
+        tmp.append(1, m_boundaries.at(i));
+    }
+    m_request.headers().add("Content-Type", tmp);
+
+    for (unsigned int i = 0; i < m_boundaries.size(); i++) {
+        m_binaryData.insert(m_binaryData.cbegin(), m_boundaries.data()[i]);
+    }
+    std::printf("%s\n", m_boundaries.c_str());
+    m_request.set_body(m_contentBinary);
     bool did = true;
     m_client.request(m_request).then([this, &did](web::http::http_response response) {
-        if (response.status_code() != 200) {
+        std::printf("%u, %s\n", response.status_code(), response.to_string().c_str());
+        if (response.status_code() != 200 || response.status_code() != 201) {
             did = false;
             return;
         }
         std::stringstream strm(response.extract_string(true).get());
         strm >> m_json;
+
         std::string tmp = m_json["payload"]["url"].dump(1);
         tmp.erase(tmp.end() - 1);
         tmp.erase(tmp.begin());
         
         m_contentURL = tmp;
-
-    });
+        return;
+    }).wait();
+    return did;
 }

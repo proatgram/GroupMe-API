@@ -28,7 +28,7 @@ Attatchment::Attatchment(std::filesystem::path contentPath, Attatchment::Types t
 
 }
 
-Attatchment::Attatchment(std::string contentBinary, Attatchment::Types type) :
+Attatchment::Attatchment(std::vector<unsigned char> contentBinary, Attatchment::Types type) :
     m_type(type),
     m_contentPath(),
     m_contentURL(),

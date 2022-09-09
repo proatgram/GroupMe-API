@@ -24,8 +24,8 @@ Main::Main(std::string token) :
     m_token(token)
 
 {
-    Picture picture(m_token, std::filesystem::path("/home/thetimbrick/Pictures/index.jpeg"));
-    std::printf("%d\n", picture.uploadPicture());
+    Video vid("***REMOVED***", std::filesystem::path("/home/thetimbrick/Videos/i.mp4"));
+    std::cout << vid.upload() << std::endl;
 }
 
 bool Main::changeAvatar(std::string path) {
