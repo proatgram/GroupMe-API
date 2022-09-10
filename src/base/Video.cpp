@@ -26,11 +26,13 @@ Video::Video(std::string accessToken, std::filesystem::path path) :
     m_client("https://video.groupme.com/transcode"),
     m_header(),
     m_json(),
-    m_binaryData()
+    m_binaryData(),
+    m_boundaries("------CpPrEsTaPi_-_LiBgRoUpMeApIcPp_-_DAd------")
 {
     m_request.set_method(web::http::methods::POST);
     m_request.headers().add("X-Access-Token", accessToken);
     m_request.headers().add("X-Conversation-Id","***REMOVED***");
+    m_request.headers().add("Content-Type", "multipart/form-data; boundary=" + m_boundaries);
     std::fstream file(m_contentPath.string(), std::ios::in | std::ios::binary);
 
     if (!file) {
@@ -39,10 +41,21 @@ Video::Video(std::string accessToken, std::filesystem::path path) :
     file.seekg(0, std::ios::end);
     int size = file.tellg();
     file.seekg(0);
+    for (unsigned int i = 0; i < m_boundaries.size(); i++) {
+        m_binaryData.push_back(m_boundaries.data()[i]);
+    }
 
     for (unsigned int i = 0; i < size; i++) {
         m_binaryData.push_back(file.get());
     }
+
+    for (unsigned int i = 0; i < m_boundaries.size(); i++) {
+        m_binaryData.push_back(m_boundaries.data()[i]);
+    }
+    for (unsigned int i = 0; i < m_binaryData.size(); i++) {
+        std::cout << m_binaryData.at(i);
+    }
+    std::cout.flush();
 }
 
 Video::Video(std::string accessToken, std::vector<unsigned char> contentVector) :
@@ -51,10 +64,12 @@ Video::Video(std::string accessToken, std::vector<unsigned char> contentVector) 
     m_client("https://video.groupme.com/transcode"),
     m_header(),
     m_json(),
-    m_binaryData(contentVector)
+    m_binaryData(contentVector),
+    m_boundaries("------CpPrEsTaPi_-_LiBgRoUpMeApIcPp_-_123123asDasDAd------")
 {
     m_request.set_method(web::http::methods::POST);
     m_request.headers().add("X-Access-Token", accessToken);
+    m_request.headers().add("Content-Type", "multipart/form-data;boundary=" + m_boundaries);
 }
 
 Video::Video(std::string accessToken, web::uri contentURL) :
@@ -63,12 +78,14 @@ Video::Video(std::string accessToken, web::uri contentURL) :
     m_client("https://video.groupme.com/transcode"),
     m_header(),
     m_json(),
-    m_binaryData()
+    m_binaryData(),
+    m_boundaries("------CpPrEsTaPi_-_LiBgRoUpMeApIcPp_-_123123asDasDAd------")
 {
     m_contentURL = contentURL;
     
     m_request.set_method(web::http::methods::POST);
     m_request.headers().add("X-Access-Token", accessToken);
+    m_request.headers().add("Content-Type", "multipart/form-data;boundary=" + m_boundaries);
 }
 
 bool Video::upload() {
