@@ -72,19 +72,6 @@ Video::Video(std::string accessToken, web::uri contentURL) :
 }
 
 bool Video::upload() {
-    for (unsigned int i = 0; i < 16; i++) {
-        m_boundaries.append(1, rand() % 25 + 65);
-    }
-    std::string tmp = "multipart/form-data;boundary=";
-    for (unsigned int i = 0; i < m_boundaries.size(); i++) {
-        tmp.append(1, m_boundaries.at(i));
-    }
-    m_request.headers().add("Content-Type", tmp);
-
-    for (unsigned int i = 0; i < m_boundaries.size(); i++) {
-        m_binaryData.insert(m_binaryData.cbegin(), m_boundaries.data()[i]);
-    }
-    std::printf("%s\n", m_boundaries.c_str());
     m_request.set_body(m_contentBinary);
     bool did = true;
     m_client.request(m_request).then([this, &did](web::http::http_response response) {
