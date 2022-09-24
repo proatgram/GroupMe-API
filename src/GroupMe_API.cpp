@@ -24,7 +24,7 @@ Main::Main(std::string token) :
     m_token(token)
 
 {
-    Video vid("***REMOVED***", std::filesystem::path("/home/thetimbrick/Videos/i.mp4"));
+    Video vid("***REMOVED***", std::filesystem::path("/home/thetimbrick/Videos/2022-09-23 19-47-43.mp4"));
     std::cout << vid.upload() << std::endl;
 }
 

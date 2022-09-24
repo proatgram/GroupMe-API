@@ -25,7 +25,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "Attatchment.h"
+#include "base/Attatchment.h"
+#include "base/multipart_parser.h"
 
 namespace GroupMe {
 
@@ -48,9 +49,7 @@ namespace GroupMe {
 
                 nlohmann::json m_json;
 
-                std::vector<unsigned char> m_binaryData;
-
-                std::string m_boundaries;
+                web::http::MultipartParser m_parser;
         };
 
 }

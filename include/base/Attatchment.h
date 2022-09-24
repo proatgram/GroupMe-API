@@ -54,7 +54,7 @@ namespace GroupMe {
             web::uri m_contentURL;
 
             std::vector<unsigned char> m_contentBinary;
-        
+
         private:
 
     };
