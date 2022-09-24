@@ -35,4 +35,5 @@
 build/*
 
 # Other
-compile_commands.json
+ *.kdev4 
+ compile_commands.json
