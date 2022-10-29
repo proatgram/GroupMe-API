@@ -104,6 +104,25 @@ const std::string &MultipartParser::GenBodyContent()
     body_content_ += "\r\n\r\n";
     body_content_ += file_content;
   }
+  for (size_t i = 0; i < files_raw_.size(); ++i) {
+    std::string filename;
+    std::string content_type;
+    std::string file_content;
+    file_content.insert(file_content.begin(), files_raw_[i].first.begin(), files_raw_[i].first.end());
+    _get_file_name_type(std::string(files_raw_[i].second), &filename, &content_type);
+    //std::cout << file_content;
+    //std::cout.flush();
+    body_content_ += "\r\n--";
+    body_content_ += boundary_;
+    body_content_ += "\r\nContent-Disposition: form-data; name=\"";
+    body_content_ += "file";
+    body_content_ += "\"; filename=\"";
+    body_content_ += filename;
+    body_content_ += "\"\r\nContent-Type: ";
+    body_content_ += content_type;
+    body_content_ += "\r\n\r\n";
+    body_content_ += file_content;
+  }
   body_content_ += "\r\n--";
   body_content_ += boundary_;
   body_content_ += "--\r\n";

@@ -20,52 +20,51 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstdint>
 #include <string>
-#include <filesystem>
 #include <vector>
+#include <algorithm>
 #include <memory>
-#include <nlohmann/json.hpp>
-#include <string>
-#include <sstream>
+#include <iostream>
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 }
 
-#include "base/Attatchment.h"
-#include "base/multipart_parser.h"
-#include "base/Exceptions.h"
-#include "base/AVFileMem.h"
-
 namespace GroupMe {
 
-    class Video : public Attatchment {
-        public:
-            Video(std::string accessToken, std::filesystem::path path, std::string conversationID);
+    namespace Util {
 
-            Video(std::string accessToken, std::vector<uint8_t>& contentVector, std::string conversationID);
+        class InMemoryAVFormat {
+            public:
 
-            Video(std::string accessToken, web::uri contentURL, std::string conversationID);
+                InMemoryAVFormat();
 
-            pplx::task<std::string> upload();
+                int openMemory(const std::vector<uint8_t>& data, AVDictionary** options = nullptr);
 
-        private:
-            web::http::http_request m_request;
+                int openMemory(std::vector<uint8_t>&& data, AVDictionary** options = nullptr);
 
-            web::http::client::http_client m_client;
+                void closeMemory();
 
-            web::http::http_headers m_header;
+                static void closeMemory(std::shared_ptr<AVFormatContext> context);
 
-            nlohmann::json m_json;
+                std::shared_ptr<AVFormatContext> get();
 
-            web::http::MultipartParser m_parser;
+            private:
 
-            std::shared_ptr<AVFormatContext> m_avContext;
+                struct Opaque{
+                    using Vector = std::vector<uint8_t>;
+                    Vector data;
+                    Vector::iterator iterator;
+                };
 
-            std::string m_conversationID;
+                static int read(void* opaque, uint8_t* buf, int size);
 
-            pplx::task<void> m_task;
-    };
+                std::shared_ptr<AVFormatContext> m_context;
+
+        };
+
+    }
 
 }

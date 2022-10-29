@@ -16,52 +16,18 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "GroupMe_API.h"
+#pragma once
 
-#include <fstream>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <exception>
 
-using namespace GroupMe;
+namespace GroupMe {
 
-Main::Main(std::string token) :
-    m_token(token)
-
-{
-    std::fstream file("/home/thetimbrick/Videos/2022-09-27 13-36-12.mp4", std::ios::in | std::ios::out | std::ios::binary);
-
-    std::string str;
-
-    std::vector<uint8_t> vec;
-
-    while(!file.eof()) {
-        vec.push_back(file.get());
-    }
-
-    Video vid("***REMOVED***", vec, "85177831");
-    //std::cout << vid.upload().get().to_string() << std::endl;
-}
-
-bool Main::changeAvatar(std::string path) {
-
-    return true;
-}
-
-bool Main::changeName(std::string name) {
-
-    return true;
-}
-
-void Main::createChat() {
-
-}
-
-void Main::createGroup(std::string groupName) {
-
-}
-
-void Main::getChats() {
-
-}
-
-void Main::getGroups() {
+    class LargeFile : public std::exception {
+        public:
+            char* what();
+    };
 
 }
