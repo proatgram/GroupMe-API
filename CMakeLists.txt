@@ -17,16 +17,20 @@ pkg_check_modules(SSL openssl REQUIRED)
 
 pkg_check_modules(NLOHMANN-JSON nlohmann_json REQUIRED)
 
+pkg_check_modules(LIBAVCODEC libavcodec REQUIRED)
+
+pkg_check_modules(LIBAVFORMAT libavformat REQUIRED)
+
 find_package(cpprestsdk REQUIRED CONFIG)
 
 add_library(GroupMe SHARED ${libGroupMe-API_SOURCES})
 
 target_include_directories(GroupMe PUBLIC "${CMAKE_SOURCE_DIR}/include")
 
-target_link_libraries(GroupMe cpprestsdk::cpprest ${SSL_LINK_LIBRARIES})
+target_link_libraries(GroupMe cpprestsdk::cpprest ${SSL_LINK_LIBRARIES} avformat)
 
 add_executable(test "${CMAKE_SOURCE_DIR}/tests/main/src/main.cpp")
 
 target_include_directories(test PRIVATE "${CMAKE_SOURCE_DIR}/tests/main/include/" "${CMAKE_SOURCE_DIR}/include")
 
-target_link_libraries(test cpprestsdk::cpprest "${CMAKE_SOURCE_DIR}/build/libGroupMe.so" ${SSL_LINK_LIBRARIES})
+target_link_libraries(test cpprestsdk::cpprest "${CMAKE_SOURCE_DIR}/build/libGroupMe.so" ${SSL_LINK_LIBRARIES} avformat)

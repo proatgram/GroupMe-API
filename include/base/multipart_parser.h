@@ -35,6 +35,7 @@ https://github.com/AndsonYe/MultipartEncoder
 #include <string>
 #include <tuple>
 #include <filesystem>
+#include <iostream>
 
 namespace web{
 namespace http{
@@ -59,6 +60,12 @@ public:
   {
     files_.push_back(std::move(std::pair<std::filesystem::path, std::string>(file, file.filename())));
   }
+  inline void AddFile(const std::vector<uint8_t>& data, const std::string name) {
+    files_raw_.push_back(std::move(std::pair<std::vector<uint8_t>, std::string>(std::move(data), name)));
+  }
+  inline void AddFile(const std::string& data, const std::string name) {
+    files_raw_.push_back(std::move(std::pair<std::vector<uint8_t>, std::string>(std::move(std::vector<uint8_t>(data.begin(), data.end())), name)));
+  }
   const std::string &GenBodyContent();
 
 private:
@@ -70,6 +77,7 @@ private:
   std::string body_content_;
   std::vector<std::pair<std::string, std::string> > params_;
   std::vector<std::pair<std::filesystem::path, std::string> > files_;
+  std::vector<std::pair<std::vector<uint8_t> , std::string>> files_raw_;
 };
 
 } //namespace web::http

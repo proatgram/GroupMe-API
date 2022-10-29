@@ -1,5 +1,6 @@
 # Prerequisites
-*.d
+ 
+ *.d
 
 # Compiled Object files
 *.slo
@@ -35,5 +36,5 @@
 build/*
 
 # Other
- *.kdev4 
- compile_commands.json
+*.kdev4 
+compile_commands.json
