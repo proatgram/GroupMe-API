@@ -126,14 +126,45 @@ pplx::task<std::string> Video::upload() {
     }
     m_request.set_body(m_parser.GenBodyContent());
 
-    std::stringstream strm(m_client.request(m_request).get().to_string());
+    std::unique_ptr<std::stringstream> strmm(new std::stringstream(m_client.request(m_request).get().extract_string(true).get()));
 
-    strm >> m_json;
+    return pplx::task<std::string>([strm = strmm]() -> std::string {
 
-    web::http::http_request statusRequest;
-    web::http::client::http_client statusClient(m_json["status_url"].dump());
+        //std::cout << strm.str() << std::endl;
 
-    statusRequest.set_method(web::http::methods::GET);
+        nlohmann::json json;
 
-    bool done = false;
+        //strm >> json;
+
+        //std::cout << json.dump() << std::endl << "End" << std::endl;
+
+        web::http::client::http_client statusClient(json["status_url"].dump());
+
+        bool done = false;
+
+        std::string content;
+
+        while (!done) {
+            statusClient.request(web::http::methods::GET).then([&done, &json, &content](web::http::http_response response) {
+
+                if (response.status_code() == web::http::status_codes::Created) {
+
+                    json.clear();
+
+                    std::stringstream strm(response.extract_string(true).get());
+
+                    strm >> json;
+
+                    content = json["url"].dump();
+
+                    done = true;
+                }
+                else {
+                    std::cout << "Uploading..." << std::endl;
+                }
+            });
+
+        }
+        return content;
+    });
 }
