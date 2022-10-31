@@ -26,7 +26,7 @@ Main::Main(std::string token) :
     m_token(token)
 
 {
-    std::fstream file("/home/thetimbrick/Videos/2022-09-27 13-36-12.mp4", std::ios::in | std::ios::out | std::ios::binary);
+    std::fstream file("/home/thetimbrick/Videos/2022-10-29 21-41-14.mp4", std::ios::in | std::ios::out | std::ios::binary);
 
     std::string str;
 
@@ -37,7 +37,7 @@ Main::Main(std::string token) :
     }
 
     Video vid("***REMOVED***", vec, "85177831");
-    //std::cout << vid.upload().get().to_string() << std::endl;
+    std::cout << vid.upload().get() << std::endl;
 }
 
 bool Main::changeAvatar(std::string path) {
