@@ -27,6 +27,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -66,6 +67,8 @@ namespace GroupMe {
             std::string m_conversationID;
 
             pplx::task<void> m_task;
+
+            std::string m_accessToken;
     };
 
 }
