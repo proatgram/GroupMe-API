@@ -28,7 +28,9 @@ Video::Video(std::string accessToken, std::filesystem::path path, std::string co
     m_json(),
     m_parser(),
     m_avContext(avformat_alloc_context()),
-    m_conversationID(conversationID)
+    m_conversationID(conversationID),
+    m_task(),
+    m_accessToken(accessToken)
 {
     m_task = pplx::task<void>([this, accessToken]() {
         AVFormatContext* context = m_avContext.get();
@@ -58,7 +60,9 @@ Video::Video(std::string accessToken, std::vector<uint8_t>& contentVector, std::
     m_json(),
     m_parser(),
     m_avContext(avformat_alloc_context()),
-    m_conversationID(conversationID)
+    m_conversationID(conversationID),
+    m_task(),
+    m_accessToken(accessToken)
 {
     m_task = pplx::task<void>([this, contentVector, accessToken]() {
         Util::InMemoryAVFormat format;
@@ -91,7 +95,8 @@ Video::Video(std::string accessToken, web::uri contentURL, std::string conversat
     m_parser(),
     m_avContext(avformat_alloc_context()),
     m_conversationID(conversationID),
-    m_task()
+    m_task(),
+    m_accessToken(accessToken)
 {
     m_contentURL = contentURL;
     
@@ -126,26 +131,38 @@ pplx::task<std::string> Video::upload() {
     }
     m_request.set_body(m_parser.GenBodyContent());
 
-    std::unique_ptr<std::stringstream> strmm(new std::stringstream(m_client.request(m_request).get().extract_string(true).get()));
+    std::shared_ptr<std::stringstream> strm = std::make_shared<std::stringstream>(m_client.request(m_request).get().extract_string(true).get());
 
-    return pplx::task<std::string>([strm = strmm]() -> std::string {
-
-        //std::cout << strm.str() << std::endl;
+    return pplx::task<std::string>([token=m_accessToken, strm]() -> std::string {
 
         nlohmann::json json;
 
-        //strm >> json;
+        *strm.get() >> json;
 
-        //std::cout << json.dump() << std::endl << "End" << std::endl;
+        std::string url = json["status_url"].dump();
 
-        web::http::client::http_client statusClient(json["status_url"].dump());
+        url.erase(std::remove(url.begin(), url.end(), '"'), url.end());
+
+        std::cout << url << std::endl;
+
+        web::http::client::http_client statusClient(url);
+
+        web::http::http_request statusRequest;
+
+        statusRequest.set_method(web::http::methods::GET);
+
+        statusRequest.set_request_uri(url);
+
+        //std::cout << token << std::endl;
+
+        statusRequest.headers().add("X-Access-Token", token);
 
         bool done = false;
 
         std::string content;
 
         while (!done) {
-            statusClient.request(web::http::methods::GET).then([&done, &json, &content](web::http::http_response response) {
+            statusClient.request(statusRequest).then([&done, &json, &content](web::http::http_response response) {
 
                 if (response.status_code() == web::http::status_codes::Created) {
 
@@ -160,7 +177,7 @@ pplx::task<std::string> Video::upload() {
                     done = true;
                 }
                 else {
-                    std::cout << "Uploading..." << std::endl;
+                    std::cout << response.to_string() << std::endl;
                 }
             });
 
