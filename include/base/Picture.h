@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -36,20 +38,20 @@ namespace GroupMe {
 
             Picture(std::string accessToken, web::uri contentURL);
 
-            bool uploadPicture();
+            pplx::task<std::string> upload();
 
         private:
             web::http::http_request m_request;
             
             web::http::client::http_client m_client;
             
-            web::http::http_headers m_header;
-            
             nlohmann::json m_json;
 
             std::vector<unsigned char> m_binaryData;
 
             std::fstream m_file;
+
+            pplx::task<void> m_task;
     };
 
 }
