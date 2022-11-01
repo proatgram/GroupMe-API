@@ -28,6 +28,8 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <thread>
+#include <chrono>
 
 extern "C" {
 #include <libavformat/avformat.h>

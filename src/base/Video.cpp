@@ -143,24 +143,17 @@ pplx::task<std::string> Video::upload() {
 
         url.erase(std::remove(url.begin(), url.end(), '"'), url.end());
 
-        std::cout << url << std::endl;
-
         web::http::client::http_client statusClient(url);
 
         web::http::http_request statusRequest;
 
         statusRequest.set_method(web::http::methods::GET);
 
-        statusRequest.set_request_uri(url);
-
-        //std::cout << token << std::endl;
-
         statusRequest.headers().add("X-Access-Token", token);
 
         bool done = false;
 
         std::string content;
-
         while (!done) {
             statusClient.request(statusRequest).then([&done, &json, &content](web::http::http_response response) {
 
@@ -174,13 +167,14 @@ pplx::task<std::string> Video::upload() {
 
                     content = json["url"].dump();
 
+                    content.erase(std::remove(content.begin(), content.end(), '"'), content.end());
+
                     done = true;
                 }
                 else {
-                    std::cout << response.to_string() << std::endl;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(300));
                 }
-            });
-
+            }).wait();
         }
         return content;
     });
