@@ -58,10 +58,6 @@ namespace GroupMe {
 
             web::http::client::http_client m_client;
 
-            web::http::http_headers m_header;
-
-            nlohmann::json m_json;
-
             web::http::MultipartParser m_parser;
 
             std::shared_ptr<AVFormatContext> m_avContext;
@@ -71,6 +67,8 @@ namespace GroupMe {
             pplx::task<void> m_task;
 
             std::string m_accessToken;
+
+            nlohmann::json m_json;
     };
 
 }

@@ -24,8 +24,8 @@ Picture::Picture(std::string accessToken, std::filesystem::path path) :
     Attatchment(path, Attatchment::Types::Picture),
     m_request(),
     m_client("https://image.groupme.com/pictures"),
-    m_header(),
-    m_file(path)
+    m_file(path),
+    m_task()
 {
     m_request.set_method(web::http::methods::POST);
     m_request.headers().add("X-Access-Token", accessToken);
@@ -46,29 +46,30 @@ Picture::Picture(std::string accessToken, web::uri contentURL) :
     Attatchment(contentURL, Attatchment::Types::Picture),
     m_request(),
     m_client("https://image.groupme.com/pictures"),
-    m_header(),
     m_json(),
     m_binaryData(),
-    m_file()
+    m_file(),
+    m_task()
 {
 
 }
 
-bool Picture::uploadPicture() {
-    m_request.set_body(m_binaryData);
-    bool did = true;
-    m_client.request(m_request).then([this, &did](web::http::http_response response) {
-            if (response.status_code() != 200) {
-                did = false;
-                return;
-            }
-            std::stringstream strm(response.extract_string(true).get());
-            strm >> m_json;
-            std::string tmp = m_json["payload"]["picture_url"].dump(1);
-            tmp.erase(tmp.cend() - 1);
-            tmp.erase(tmp.cbegin());
-            m_contentURL = tmp;
-        
-    }).wait();
-    return did;
+pplx::task<std::string> Picture::upload() {
+    return pplx::task<std::string>([this]() -> std::string {
+        m_request.set_body(m_binaryData);
+        m_client.request(m_request).then([this](web::http::http_response response) {
+                if (response.status_code() != 200) {
+
+                    return;
+                }
+                std::stringstream strm(response.extract_string(true).get());
+                strm >> m_json;
+                std::string tmp = m_json["payload"]["picture_url"].dump(1);
+                tmp.erase(tmp.cend() - 1);
+                tmp.erase(tmp.cbegin());
+                m_contentURL = tmp;
+        }).wait();
+        return m_contentURL.to_string();
+    });
+
 }
