@@ -21,55 +21,80 @@
 using namespace GroupMe;
 
 Picture::Picture(std::string accessToken, std::filesystem::path path) :
-    Attatchment(path, Attatchment::Types::Picture),
-    m_request(),
-    m_client("https://image.groupme.com/pictures"),
-    m_file(path),
-    m_task()
-{
-    m_request.set_method(web::http::methods::POST);
-    m_request.headers().add("X-Access-Token", accessToken);
-    m_request.headers().add("Content-Type", "image/jpeg");
-    if (!m_file) {
-        throw std::fstream::failure("Failed to open file.");
-    }
-    m_file.seekg(0, std::ios::end);
-    int size = m_file.tellg();
-    m_file.seekg(0);
-    
-    for (unsigned int i = 0; i < size; i++) {
-        m_binaryData.push_back(m_file.get());
-    }
-}
-
-Picture::Picture(std::string accessToken, web::uri contentURL) :
-    Attatchment(contentURL, Attatchment::Types::Picture),
+    Attatchment(path, Attatchment::Types::Picture, accessToken),
     m_request(),
     m_client("https://image.groupme.com/pictures"),
     m_json(),
-    m_binaryData(),
+    m_file(path),
+    m_task()
+{
+    m_task = pplx::task<void>([this]() -> void {
+        m_request.set_method(web::http::methods::POST);
+        m_request.headers().add("X-Access-Token", m_accessToken);
+        m_request.headers().add("Content-Type", "image/jpeg");
+
+        if (!m_file) {
+            throw std::fstream::failure("Failed to open file.");
+        }
+
+        m_contentBinary.assign(std::istreambuf_iterator<char>(m_file), std::istreambuf_iterator<char>());
+
+    });
+}
+
+Picture::Picture(std::string accessToken, web::uri contentURL) :
+    Attatchment(contentURL, Attatchment::Types::Picture, accessToken),
+    m_request(),
+    m_client(m_content),
+    m_json(),
     m_file(),
     m_task()
 {
+    m_task = pplx::task<void>([this]() -> void {
+        m_request.set_method(web::http::methods::GET);
 
+        m_client.request(m_request).then([this](web::http::http_response response) {
+            std::stringstream strm;
+
+            strm << response.extract_string(true).get();
+
+            m_contentBinary.assign(std::istreambuf_iterator<char>(strm), std::istreambuf_iterator<char>());
+        }).wait();
+
+        m_client = web::http::client::http_client("https://image.groupme.com/pictures");
+
+        m_request.set_method(web::http::methods::POST);
+        m_request.headers().add("X-Access-Token", m_accessToken);
+        m_request.headers().add("Content-Type", "image/jpeg");
+        m_request.set_body("");
+    });
 }
 
 pplx::task<std::string> Picture::upload() {
+    while (!m_task.is_done()) {
+
+    }
+
     return pplx::task<std::string>([this]() -> std::string {
-        m_request.set_body(m_binaryData);
-        m_client.request(m_request).then([this](web::http::http_response response) {
+        m_request.set_body(m_contentBinary);
+        m_client.request(m_request).then([this](web::http::http_response response) -> void {
                 if (response.status_code() != 200) {
 
                     return;
                 }
+
                 std::stringstream strm(response.extract_string(true).get());
+
                 strm >> m_json;
+
                 std::string tmp = m_json["payload"]["picture_url"].dump(1);
+
                 tmp.erase(tmp.cend() - 1);
                 tmp.erase(tmp.cbegin());
-                m_contentURL = tmp;
-        }).wait();
-        return m_contentURL.to_string();
-    });
 
+                m_content = tmp;
+
+        }).wait();
+        return m_content;
+    });
 }

@@ -23,7 +23,7 @@
 
 int main(int argc, char** argv) {
 
-    GroupMe::Main test("***REMOVED***");
+    GroupMe::Main test(argv[1]);
 
     return EXIT_SUCCESS;
 }

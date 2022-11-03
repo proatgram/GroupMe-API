@@ -26,9 +26,7 @@ Main::Main(std::string token) :
     m_token(token)
 
 {
-    std::fstream file("/home/thetimbrick/Videos/2022-10-29 21-41-14.mp4", std::ios::in | std::ios::out | std::ios::binary);
-
-    std::string str;
+    std::fstream file("/home/thetimbrick/message.txt", std::ios::in | std::ios::out | std::ios::binary);
 
     std::vector<uint8_t> vec;
 
@@ -36,8 +34,9 @@ Main::Main(std::string token) :
         vec.push_back(file.get());
     }
 
-    Video vid("***REMOVED***", vec, "85177831");
-    std::cout << vid.upload().get() << std::endl;
+    File gfile(token, web::uri("http://info.cern.ch/hypertext/WWW/TheProject.html"), "85177831");
+
+    std::cout << gfile.upload().get() << std::endl;
 }
 
 bool Main::changeAvatar(std::string path) {

@@ -25,6 +25,7 @@
 #include "base/Authenticator.h"
 #include "base/Picture.h"
 #include "base/Video.h"
+#include "base/File.h"
 
 namespace GroupMe {
 
