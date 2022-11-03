@@ -47,8 +47,6 @@ namespace GroupMe {
             
             nlohmann::json m_json;
 
-            std::vector<unsigned char> m_binaryData;
-
             std::fstream m_file;
 
             pplx::task<void> m_task;

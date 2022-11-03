@@ -32,14 +32,15 @@ namespace GroupMe {
         public:
             enum class Types {
                 Picture,
-                Video
+                Video,
+                File
             };
             
-            Attatchment(std::filesystem::path contentPath, Attatchment::Types type);
+            Attatchment(std::filesystem::path contentPath, Attatchment::Types type, std::string accessToken);
 
-            Attatchment(web::uri contentURL, Attatchment::Types type);
+            Attatchment(web::uri contentURL, Attatchment::Types type, std::string accessToken);
 
-            Attatchment(std::vector<unsigned char> contentBinary, Attatchment::Types type);
+            Attatchment(std::vector<unsigned char> contentBinary, Attatchment::Types type, std::string accessToken);
 
             web::uri getContentURL();
 
@@ -51,9 +52,11 @@ namespace GroupMe {
         
             std::filesystem::path m_contentPath;
 
-            web::uri m_contentURL;
+            std::string m_content;
 
             std::vector<unsigned char> m_contentBinary;
+
+            std::string m_accessToken;
 
         private:
 

@@ -21,17 +21,16 @@
 using namespace GroupMe;
 
 Video::Video(std::string accessToken, std::filesystem::path path, std::string conversationID) :
-    Attatchment(path, Attatchment::Types::Video),
+    Attatchment(path, Attatchment::Types::Video, accessToken),
     m_request(),
     m_client("https://video.groupme.com/transcode"),
     m_parser(),
-    m_avContext(avformat_alloc_context()),
     m_conversationID(conversationID),
     m_task(),
-    m_accessToken(accessToken)
+    m_json()
 {
-    m_task = pplx::task<void>([this, accessToken]() {
-        AVFormatContext* context = m_avContext.get();
+    m_task = pplx::task<void>([this]() {
+        AVFormatContext* context = avformat_alloc_context();//m_avContext.get();
         avformat_open_input(&context, m_contentPath.c_str(), NULL, NULL);
 
         if (context->duration / static_cast<double>(AV_TIME_BASE) > 60.0) {
@@ -41,7 +40,7 @@ Video::Video(std::string accessToken, std::filesystem::path path, std::string co
         avformat_close_input(&context);
 
         m_request.set_method(web::http::methods::POST);
-        m_request.headers().add("X-Access-Token", accessToken);
+        m_request.headers().add("X-Access-Token", m_accessToken);
         m_request.headers().add("X-Conversation-Id", m_conversationID);
 
         m_parser.AddFile(m_contentPath);
@@ -51,31 +50,26 @@ Video::Video(std::string accessToken, std::filesystem::path path, std::string co
 }
 
 Video::Video(std::string accessToken, std::vector<uint8_t>& contentVector, std::string conversationID) :
-    Attatchment(contentVector, Attatchment::Types::Video),
+    Attatchment(contentVector, Attatchment::Types::Video, accessToken),
     m_request(),
     m_client("https://video.groupme.com/transcode"),
     m_parser(),
-    m_avContext(avformat_alloc_context()),
     m_conversationID(conversationID),
     m_task(),
-    m_accessToken(accessToken),
     m_json()
 {
-    m_task = pplx::task<void>([this, contentVector, accessToken]() {
+    m_task = pplx::task<void>([this, contentVector]() {
         Util::InMemoryAVFormat format;
         format.openMemory(contentVector);
-        m_avContext.reset();
 
-        m_avContext = format.get();
-
-        if (m_avContext.get()->duration / static_cast<double>(AV_TIME_BASE) > 60.0) {
+        if (format.get()->duration / static_cast<double>(AV_TIME_BASE) > 60.0) {
             throw LargeFile();
         }
 
         format.closeMemory();
 
         m_request.set_method(web::http::methods::POST);
-        m_request.headers().add("X-Access-Token", accessToken);
+        m_request.headers().add("X-Access-Token", m_accessToken);
         m_request.headers().add("X-Conversation-Id", m_conversationID);
 
         m_parser.AddFile(contentVector, "file.mp4");
@@ -84,40 +78,37 @@ Video::Video(std::string accessToken, std::vector<uint8_t>& contentVector, std::
 }
 
 Video::Video(std::string accessToken, web::uri contentURL, std::string conversationID) :
-    Attatchment(contentURL, Attatchment::Types::Video),
+    Attatchment(contentURL, Attatchment::Types::Video, accessToken),
     m_request(),
-    m_client("https://video.groupme.com/transcode"),
+    m_client(m_content),
     m_parser(),
-    m_avContext(avformat_alloc_context()),
     m_conversationID(conversationID),
     m_task(),
-    m_accessToken(accessToken),
     m_json()
 {
-    m_contentURL = contentURL;
-    
-    m_request.set_method(web::http::methods::POST);
-    m_request.headers().add("X-Access-Token", accessToken);
+    m_content = contentURL.to_string();
 
-    m_request.headers().add("Content-Type", "multipart/form-data;boundary=" + m_parser.boundary());
+    m_task = pplx::task<void>([this]() -> void {
 
-    m_task = pplx::task<void>([this]() {
-        web::http::client::http_client downloadClient(m_contentURL);
-        web::http::http_request downloadRequest;
-
-        downloadRequest.set_method(web::http::methods::GET);
-        pplx::task<web::http::http_response> task = downloadClient.request(downloadRequest);
+        m_request.set_method(web::http::methods::GET);
+        pplx::task<web::http::http_response> task = m_client.request(m_request);
         task.then([this](web::http::http_response response) {
 
             std::stringstream strm;
 
-            strm << response.body();
+            strm << response.extract_string(true).get();
 
             m_contentBinary.assign(std::istreambuf_iterator<char>(strm), std::istreambuf_iterator<char>());
 
+            m_parser.AddFile(m_contentBinary, "file.mp4");
+
         });
-        task.wait();
-        return;
+        m_client = web::http::client::http_client("https://video.groupme.com/transcode");
+
+        m_request.set_method(web::http::methods::POST);
+        m_request.headers().add("X-Access-Token", m_accessToken);
+        m_request.headers().add("Content-Type", "multipart/form-data;boundary=" + m_parser.boundary());
+        m_request.set_body("");
     });
 }
 
@@ -128,7 +119,6 @@ pplx::task<std::string> Video::upload() {
     m_request.set_body(m_parser.GenBodyContent());
 
     return pplx::task<std::string>([this]() -> std::string {
-
         std::stringstream strm(m_client.request(m_request).get().extract_string(true).get());
 
         strm >> m_json;
@@ -137,9 +127,9 @@ pplx::task<std::string> Video::upload() {
 
         tmp.erase(std::remove(tmp.begin(), tmp.end(), '"'), tmp.end());
 
-        m_contentURL = tmp;
+        m_content = tmp;
 
-        m_client = web::http::client::http_client(m_contentURL);
+        m_client = web::http::client::http_client(m_content);
 
         m_request.set_method(web::http::methods::GET);
 
@@ -163,7 +153,7 @@ pplx::task<std::string> Video::upload() {
 
                     content.erase(std::remove(content.begin(), content.end(), '"'), content.end());
 
-                    m_contentURL = content;
+                    m_content = content;
 
                     done = true;
                 }
@@ -172,6 +162,6 @@ pplx::task<std::string> Video::upload() {
                 }
             }).wait();
         }
-        return m_contentURL.to_string();
+        return m_content;
     });
 }

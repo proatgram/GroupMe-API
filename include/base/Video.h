@@ -60,13 +60,9 @@ namespace GroupMe {
 
             web::http::MultipartParser m_parser;
 
-            std::shared_ptr<AVFormatContext> m_avContext;
-
             std::string m_conversationID;
 
             pplx::task<void> m_task;
-
-            std::string m_accessToken;
 
             nlohmann::json m_json;
     };
