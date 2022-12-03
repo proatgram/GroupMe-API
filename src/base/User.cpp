@@ -20,65 +20,45 @@
 
 using namespace GroupMe;
 
-User::User(std::string userID, std::string userNickname, std::string userProfileImageURL, std::string userPhoneNumber, std::string userEmail, std::string userGUID) :
+User::User(const std::string& userID, const std::string& userNickname, const std::string& userProfileImageURL, const std::string& userPhoneNumber, const std::string& userEmail, const std::string& userGUID) :
     m_userID(userID),
     m_userNickname(userNickname),
     m_userProfileImageURL(userProfileImageURL),
     m_userPhoneNumber(userPhoneNumber),
     m_userEmail(userEmail),
-    m_userGUID(userGUID)
+    m_userGUID(userGUID),
+    m_isSMS(false)
 {
 
 }
 
-std::string User::getUserID() {
+std::string User::getUserID() const{
     return m_userID;
 }
 
-const std::string User::getUserID() const {
-    return m_userID;
-}
-
-std::string User::getUserNickname() {
+std::string User::getUserNickname() const {
     return m_userNickname;
 }
 
-const std::string User::getUserNickname() const {
-    return m_userNickname;
-}
-
-std::string User::getUserProfileImageURL() {
+std::string User::getUserProfileImageURL() const {
     return m_userProfileImageURL;
 }
 
-const std::string User::getUserProfileImageURL() const {
-    return m_userProfileImageURL;
-}
-
-std::string User::getUserPhoneNumber() {
+std::string User::getUserPhoneNumber() const {
     return m_userPhoneNumber;
 }
 
-const std::string User::getUserPhoneNumber() const {
-    return m_userPhoneNumber;
-}
-
-std::string User::getUserEmail() {
+std::string User::getUserEmail() const {
     return m_userEmail;
 }
 
-const std::string User::getUserEmail() const {
-    return m_userEmail;
-}
-
-std::string User::getUserGUID() {
+std::string User::getUserGUID() const {
     return m_userGUID;
 }
 
-const std::string User::getUserGUID() const {
-    return m_userGUID;
+bool User::usingSMS() const {
+    return m_isSMS;
 }
-
 
 bool User::operator==(const User& user) const {
     if (this->getUserGUID() != user.getUserGUID()) {
