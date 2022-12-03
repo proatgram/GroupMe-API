@@ -45,11 +45,11 @@ namespace GroupMe {
 
     class Video : public Attatchment {
         public:
-            Video(std::string accessToken, std::filesystem::path path, std::string conversationID);
+            Video(const std::string& accessToken, const std::filesystem::path& path, const std::string& conversationID);
 
-            Video(std::string accessToken, std::vector<uint8_t>& contentVector, std::string conversationID);
+            Video(const std::string& accessToken, const std::vector<uint8_t>& contentVector, const std::string& conversationID);
 
-            Video(std::string accessToken, web::uri contentURL, std::string conversationID);
+            Video(const std::string& accessToken, const web::uri& contentURL,const  std::string& conversationID);
 
             pplx::task<std::string> upload();
 

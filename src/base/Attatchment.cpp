@@ -20,7 +20,7 @@
 
 using namespace GroupMe;
 
-Attatchment::Attatchment(std::filesystem::path contentPath, Attatchment::Types type, std::string accessToken) :
+Attatchment::Attatchment(const std::filesystem::path& contentPath, const Attatchment::Types& type, const std::string& accessToken) :
     m_type(type),
     m_contentPath(contentPath),
     m_content(),
@@ -29,7 +29,7 @@ Attatchment::Attatchment(std::filesystem::path contentPath, Attatchment::Types t
 
 }
 
-Attatchment::Attatchment(std::vector<unsigned char> contentBinary, Attatchment::Types type, std::string accessToken) :
+Attatchment::Attatchment(const std::vector<unsigned char>& contentBinary, const Attatchment::Types& type, const std::string& accessToken) :
     m_type(type),
     m_contentPath(),
     m_content(),
@@ -39,7 +39,7 @@ Attatchment::Attatchment(std::vector<unsigned char> contentBinary, Attatchment::
 
 }
 
-Attatchment::Attatchment(web::uri contentURL, Attatchment::Types type, std::string accessToken) :
+Attatchment::Attatchment(const web::uri& contentURL, const Attatchment::Types& type, const std::string& accessToken) :
     m_type(type),
     m_contentPath(),
     m_content(contentURL.to_string()),

@@ -36,11 +36,13 @@ namespace GroupMe {
                 File
             };
             
-            Attatchment(std::filesystem::path contentPath, Attatchment::Types type, std::string accessToken);
+            Attatchment(const std::filesystem::path& contentPath, const Attatchment::Types& type, const std::string& accessToken);
 
-            Attatchment(web::uri contentURL, Attatchment::Types type, std::string accessToken);
+            Attatchment(const std::vector<unsigned char>& contentBinary, const Attatchment::Types& type, const std::string& accessToken);
 
-            Attatchment(std::vector<unsigned char> contentBinary, Attatchment::Types type, std::string accessToken);
+            Attatchment(const web::uri& contentURL, const Attatchment::Types& type, const std::string& accessToken);
+
+            Attatchment(const std::string& content, const Attatchment::Types& type, const std::string& accessToken);
 
             web::uri getContentURL();
 

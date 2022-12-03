@@ -20,7 +20,7 @@
 
 using namespace GroupMe;
 
-Video::Video(std::string accessToken, std::filesystem::path path, std::string conversationID) :
+Video::Video(const std::string& accessToken, const std::filesystem::path& path, const std::string& conversationID) :
     Attatchment(path, Attatchment::Types::Video, accessToken),
     m_request(),
     m_client("https://video.groupme.com/transcode"),
@@ -49,7 +49,7 @@ Video::Video(std::string accessToken, std::filesystem::path path, std::string co
     });
 }
 
-Video::Video(std::string accessToken, std::vector<uint8_t>& contentVector, std::string conversationID) :
+Video::Video(const std::string& accessToken, const std::vector<uint8_t>& contentVector, const std::string& conversationID) :
     Attatchment(contentVector, Attatchment::Types::Video, accessToken),
     m_request(),
     m_client("https://video.groupme.com/transcode"),
@@ -77,7 +77,7 @@ Video::Video(std::string accessToken, std::vector<uint8_t>& contentVector, std::
     });
 }
 
-Video::Video(std::string accessToken, web::uri contentURL, std::string conversationID) :
+Video::Video(const std::string& accessToken, const web::uri& contentURL,const  std::string& conversationID) :
     Attatchment(contentURL, Attatchment::Types::Video, accessToken),
     m_request(),
     m_client(m_content),

@@ -26,31 +26,33 @@
 namespace GroupMe {
     class User {
         public:
-            User(std::string userID, std::string userNickname, std::string userProfileImageURL, std::string userPhoneNumber, std::string userEmail, std::string userGUID);
+            User(const std::string& userID, const std::string& userNickname, const std::string& userProfileImageURL, const std::string& userPhoneNumber, const std::string& userEmail, const std::string& userGUID);
 
-            std::string getUserID();
+            std::string getUserID() const;
 
-            const std::string getUserID() const;
+            void setUserID(const std::string& userID);
 
-            std::string getUserNickname();
+            std::string getUserNickname() const;
 
-            const std::string getUserNickname() const;
+            void setUserNickname(const std::string& userNickname);
 
-            std::string getUserProfileImageURL();
+            std::string getUserProfileImageURL() const;
 
-            const std::string getUserProfileImageURL() const;
+            void setUserProfileImageURL(const std::string& userProfileImageURL);
 
-            std::string getUserPhoneNumber();
+            std::string getUserPhoneNumber() const;
 
-            const std::string getUserPhoneNumber() const;
+            void setUserPhoneNumber(const std::string& userPhoneNumber);
 
-            std::string getUserEmail();
+            std::string getUserEmail() const;
 
-            const std::string getUserEmail() const;
+            void setUserEmail(const std::string& userEmail);
 
-            std::string getUserGUID();
+            std::string getUserGUID() const;
 
-            const std::string getUserGUID() const;
+            void setUserGUI(const std::string& userGUID);
+
+            bool usingSMS() const;
 
             bool operator==(const User& user) const;
 
@@ -69,5 +71,7 @@ namespace GroupMe {
             std::string m_userEmail;
 
             std::string m_userGUID;
+
+            bool m_isSMS;
     };
 }
