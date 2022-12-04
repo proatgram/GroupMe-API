@@ -17,6 +17,7 @@
 */
 
 #include "GroupMe_API.h"
+#include "base/Self.h"
 
 #include <fstream>
 
@@ -26,6 +27,10 @@ Main::Main(std::string token) :
     m_token(token)
 
 {
+
+    Self self(m_token);
+
+    /*
     std::fstream file("/home/thetimbrick/message.txt", std::ios::in | std::ios::out | std::ios::binary);
 
     std::vector<uint8_t> vec;
@@ -37,6 +42,7 @@ Main::Main(std::string token) :
     File gfile(token, web::uri("http://info.cern.ch/hypertext/WWW/TheProject.html"), "***REMOVED***");
 
     std::cout << gfile.upload().get() << std::endl;
+    */
 }
 
 bool Main::changeAvatar(std::string path) {
