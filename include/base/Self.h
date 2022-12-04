@@ -16,15 +16,32 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <cstdio>
 #include <cstdlib>
+#include <string>
+#include <algorithm>
 
-#include "GroupMe_API.h"
-#include "base/Authenticator.h"
+#include <cpprest/http_client.h>
+#include <cpprest/http_headers.h>
+#include <cpprest/uri.h>
+#include <nlohmann/json.hpp>
 
-int main(int argc, char** argv) {
+#include "base/User.h"
 
-    GroupMe::Main test(argv[1]);
+namespace GroupMe {
+    class Self : public User {
+        public:
+            Self(std::string accessToken);
 
-    return EXIT_SUCCESS;
+        private:
+            std::string m_accessToken;
+
+            web::http::http_request m_request;
+
+            web::http::client::http_client m_client;
+
+            pplx::task<void> m_task;
+    };
 }

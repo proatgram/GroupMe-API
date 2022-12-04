@@ -28,6 +28,8 @@ namespace GroupMe {
         public:
             User(const std::string& userID, const std::string& userNickname, const std::string& userProfileImageURL, const std::string& userPhoneNumber, const std::string& userEmail, const std::string& userGUID);
 
+            User();
+
             std::string getUserID() const;
 
             void setUserID(const std::string& userID);
@@ -58,7 +60,7 @@ namespace GroupMe {
 
             bool operator!=(const User& user) const;
 
-        private:
+        protected:
             
             std::string m_userID;
 
@@ -71,6 +73,10 @@ namespace GroupMe {
             std::string m_userEmail;
 
             std::string m_userGUID;
+
+            std::string m_createdAt;
+
+            std::string m_updatedAt;
 
             bool m_isSMS;
     };

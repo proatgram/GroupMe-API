@@ -27,12 +27,28 @@ User::User(const std::string& userID, const std::string& userNickname, const std
     m_userPhoneNumber(userPhoneNumber),
     m_userEmail(userEmail),
     m_userGUID(userGUID),
+    m_createdAt(),
+    m_updatedAt(),
     m_isSMS(false)
 {
 
 }
 
-std::string User::getUserID() const{
+User::User() :
+    m_userID(),
+    m_userNickname(),
+    m_userProfileImageURL(),
+    m_userPhoneNumber(),
+    m_userEmail(),
+    m_userGUID(),
+    m_createdAt(),
+    m_updatedAt(),
+    m_isSMS(false)
+{
+
+}
+
+std::string User::getUserID() const {
     return m_userID;
 }
 
