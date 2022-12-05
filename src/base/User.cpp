@@ -48,51 +48,143 @@ User::User() :
 
 }
 
-std::string User::getUserID() const {
+std::string User::getID() const {
     return m_userID;
 }
 
-std::string User::getUserNickname() const {
+void User::setID(const std::string& userID) {
+    m_userID = userID;
+}
+
+std::string User::getNickname() const {
     return m_userNickname;
 }
 
-std::string User::getUserProfileImageURL() const {
+void User::setNickname(const std::string& userNickname) {
+    m_userNickname = userNickname;
+}
+
+std::string User::getProfileImageURL() const {
     return m_userProfileImageURL;
 }
 
-std::string User::getUserPhoneNumber() const {
+void User::setProfileImageURL(const std::string& userProfileImageURL) {
+    m_userProfileImageURL = userProfileImageURL;
+}
+
+std::string User::getPhoneNumber() const {
     return m_userPhoneNumber;
 }
 
-std::string User::getUserEmail() const {
+void User::setPhoneNumber(const std::string& userPhoneNumber) {
+    m_userPhoneNumber = userPhoneNumber;
+}
+
+std::string User::getEmail() const {
     return m_userEmail;
 }
 
-std::string User::getUserGUID() const {
+void User::setEmail(const std::string& userEmail) {
+    m_userEmail = userEmail;
+}
+
+std::string User::getGUID() const {
     return m_userGUID;
+}
+
+void User::setGUID(const std::string& userGUID) {
+    m_userGUID = userGUID;
+}
+
+std::string User::getLocale() const {
+    return m_locale;
+}
+
+void User::setLocal(const std::string& locale) {
+    m_locale = locale;
+}
+
+std::string User::getZipCode() const {
+    return m_zipCode;
+}
+
+void User::setZipCode(const std::string& zipCode) {
+    m_zipCode = zipCode;
+}
+
+std::string User::getShareURL() const {
+    return m_shareURL;
+}
+
+void User::setShareURL(const std::string& shareURL) {
+    m_shareURL = shareURL;
+}
+
+std::string User::getShareQRCodeURL() const {
+    return m_shareQRCodeURL;
+}
+
+void User::setShareQRCodeURL(const std::string& shareQRCodeURL) {
+    m_shareQRCodeURL = shareQRCodeURL;
+}
+
+unsigned int User::getCreatedAt() const {
+    return m_createdAt;
+}
+
+void User::setCreatedAt(unsigned int createdAt) {
+    m_createdAt = createdAt;
+}
+
+unsigned int User::getUpdatedAt() const {
+    return m_updatedAt;
+}
+
+void User::setUpdatedAt(unsigned int updatedAt) {
+    m_updatedAt = updatedAt;
 }
 
 bool User::usingSMS() const {
     return m_isSMS;
 }
 
+void User::setUsingSMS(bool usingSMS) {
+    m_isSMS = usingSMS;
+}
+
+bool User::getFacebookConnected() const {
+    return m_isFacebookConnected;
+}
+
+void User::setFacebookConnected(bool facebookConnected) {
+    m_isFacebookConnected = facebookConnected;
+}
+
+bool User::getTwitterConnected() const {
+    return m_isTwitterConnected;
+}
+
+void User::setTwitterConnected(bool twitterConnected) {
+    m_isTwitterConnected = twitterConnected;
+}
+
 bool User::operator==(const User& user) const {
-    if (this->getUserGUID() != user.getUserGUID()) {
+    if (this->getGUID() != user.getGUID()) {
         return false;
     }
-    else if (this->getUserID() != user.getUserID()) {
+    else if (this->getID() != user.getID()) {
         return false;
     }
-    else if (this->getUserPhoneNumber() != user.getUserPhoneNumber()) {
+    else if (this->getPhoneNumber() != user.getPhoneNumber()) {
         return false;
     }
-    else if (this->getUserEmail() != user.getUserEmail()) {
+    else if (this->getEmail() != user.getEmail()) {
         return false;
     }
-    else if (this->getUserProfileImageURL() != user.getUserProfileImageURL()) {
+    else if (this->getProfileImageURL() != user.getProfileImageURL()) {
         return false;
     }
-    else if (this->getUserNickname() != user.getUserNickname()) {
+    else if (this->getNickname() != user.getNickname()) {
         return false;
     }
     else {

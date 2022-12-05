@@ -30,31 +30,65 @@ namespace GroupMe {
 
             User();
 
-            std::string getUserID() const;
+            std::string getID() const;
 
-            void setUserID(const std::string& userID);
+            void setID(const std::string& userID);
 
-            std::string getUserNickname() const;
+            std::string getNickname() const;
 
-            void setUserNickname(const std::string& userNickname);
+            void setNickname(const std::string& userNickname);
 
-            std::string getUserProfileImageURL() const;
+            std::string getProfileImageURL() const;
 
-            void setUserProfileImageURL(const std::string& userProfileImageURL);
+            void setProfileImageURL(const std::string& userProfileImageURL);
 
-            std::string getUserPhoneNumber() const;
+            std::string getPhoneNumber() const;
 
-            void setUserPhoneNumber(const std::string& userPhoneNumber);
+            void setPhoneNumber(const std::string& userPhoneNumber);
 
-            std::string getUserEmail() const;
+            std::string getEmail() const;
 
-            void setUserEmail(const std::string& userEmail);
+            void setEmail(const std::string& userEmail);
 
-            std::string getUserGUID() const;
+            std::string getGUID() const;
 
-            void setUserGUI(const std::string& userGUID);
+            void setGUID(const std::string& userGUID);
+
+            std::string getLocale() const;
+
+            void setLocal(const std::string& locale);
+
+            std::string getZipCode() const;
+
+            void setZipCode(const std::string& zipCode);
+
+            std::string getShareURL() const;
+
+            void setShareURL(const std::string& shareURL);
+
+            std::string getShareQRCodeURL() const;
+
+            void setShareQRCodeURL(const std::string& shareQRCodeURL);
+
+            unsigned int getCreatedAt() const;
+
+            void setCreatedAt(unsigned int createdAt);
+
+            unsigned int getUpdatedAt() const;
+
+            void setUpdatedAt(unsigned int updatedAt);
 
             bool usingSMS() const;
+
+            void setUsingSMS(bool usingSMS);
+
+            bool getFacebookConnected() const;
+
+            void setFacebookConnected(bool facebookConnected);
+
+            bool getTwitterConnected() const;
+
+            void setTwitterConnected(bool twitterConnected);
 
             bool operator==(const User& user) const;
 
@@ -74,10 +108,24 @@ namespace GroupMe {
 
             std::string m_userGUID;
 
-            std::string m_createdAt;
+            std::string m_locale;
 
-            std::string m_updatedAt;
+            std::string m_zipCode;
+
+            std::string m_shareURL;
+
+            std::string m_shareQRCodeURL;
+
+            unsigned int m_createdAt;
+
+            unsigned int m_updatedAt;
 
             bool m_isSMS;
+
+            bool m_isFacebookConnected;
+
+            bool m_isTwitterConnected;
+
+
     };
 }
