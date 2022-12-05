@@ -27,24 +27,21 @@ Self::Self(std::string accessToken) :
     m_client("https://api.groupme.com/v3/users/me"),
     m_task()
 {
-    std::cout << "Test" << std::endl;
     m_task = pplx::task<void>([this]() -> void {
         m_request.set_method(web::http::methods::GET);
 
         m_request.headers().add("X-Access-Token", m_accessToken);
-
         m_client.request(m_request).then([this](web::http::http_response response) {
             if (response.status_code() != web::http::status_codes::OK) {
+                std::cout << "Non OK code" << std::endl;
+                std::cout << response.to_string();
                 return;
             }
 
-            nlohmann::json json;
-
-            std::stringstream strm(response.extract_string(true).get());
-
-            strm >> json;
+            auto json = nlohmann::json::parse(response.extract_string(true).get());
 
             if (json["response"] == "null") {
+                std::cout << "Response is 'null'" << std::endl;
                 return;
             }
 
@@ -58,17 +55,15 @@ Self::Self(std::string accessToken) :
             m_userProfileImageURL.erase(std::remove(m_userProfileImageURL.begin(), m_userProfileImageURL.end(), '\"'), m_userProfileImageURL.end());
 
             m_createdAt = json["response"]["created_at"];
-            m_createdAt.erase(std::remove(m_createdAt.begin(), m_createdAt.end(), '\"'), m_createdAt.end());
 
             m_updatedAt = json["response"]["updated_at"];
-            m_updatedAt.erase(std::remove(m_updatedAt.begin(), m_updatedAt.end(), '\"'), m_updatedAt.end());
 
             m_userEmail = json["response"]["email"];
             m_userEmail.erase(std::remove(m_userEmail.begin(), m_userEmail.end(), '\"'), m_userEmail.end());
 
             m_isSMS = (json["response"]["sms"] == "\"true\"" ? true : false);
 
-            std::cout << m_userID << "\n" << m_userPhoneNumber << "\n" << m_userProfileImageURL << "\n" << m_createdAt << "\n" << m_updatedAt << "\n" << m_userEmail << std::endl;
-        });
+        }).wait();
     });
+    m_task.wait();
 }
