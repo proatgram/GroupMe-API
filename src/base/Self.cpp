@@ -104,6 +104,9 @@ pplx::task<web::http::status_code> Self::push() {
         m_request.set_method(web::http::methods::POST);
 
         m_request.set_body(json.dump());
+
+        m_client = web::http::client::http_client("https://api.groupme.com/v3/users/update");
+
         web::http::status_code statusCode;
 
         m_client.request(m_request).then([&statusCode](web::http::http_response response) {
@@ -128,6 +131,8 @@ pplx::task<web::http::status_code> Self::pull() {
         m_request.set_body("");
 
         web::http::status_code statusCode;
+
+        m_client = web::http::client::http_client("https://api.groupme.com/v3/users/me");
 
         m_client.request(m_request).then([&statusCode, this](web::http::http_response response) {
 

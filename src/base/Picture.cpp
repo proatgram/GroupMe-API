@@ -71,15 +71,11 @@ Picture::Picture(std::string accessToken, web::uri contentURL) :
 }
 
 Picture::~Picture() {
-    if (!m_task.is_done()) {
-        m_task.wait();
-    }
+    m_task.wait();
 }
 
 pplx::task<std::string> Picture::upload() {
-    while (!m_task.is_done()) {
-
-    }
+    m_task.wait();
 
     return pplx::task<std::string>([this]() -> std::string {
         m_request.set_body(m_contentBinary);
