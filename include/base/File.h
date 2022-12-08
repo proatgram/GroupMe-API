@@ -44,6 +44,8 @@ namespace GroupMe {
 
             File(std::string accessToken, web::uri contentURL, std::string conversationID);
 
+            ~File();
+
             pplx::task<std::string> upload();
 
         private:

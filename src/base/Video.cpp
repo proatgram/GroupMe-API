@@ -112,6 +112,12 @@ Video::Video(const std::string& accessToken, const web::uri& contentURL,const  s
     });
 }
 
+Video::~Video() {
+    if (!m_task.is_done()) {
+        m_task.wait();
+    }
+}
+
 pplx::task<std::string> Video::upload() {
     while(!m_task.is_done()) {
 

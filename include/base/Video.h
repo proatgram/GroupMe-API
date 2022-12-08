@@ -51,6 +51,8 @@ namespace GroupMe {
 
             Video(const std::string& accessToken, const web::uri& contentURL,const  std::string& conversationID);
 
+            ~Video();
+
             pplx::task<std::string> upload();
 
         private:

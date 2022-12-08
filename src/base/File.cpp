@@ -108,6 +108,12 @@ File::File(std::string accessToken, web::uri contentURL, std::string conversatio
     });
 }
 
+File::~File() {
+    if (!m_task.is_done()) {
+        m_task.wait();
+    }
+}
+
 pplx::task<std::string> File::upload() {
     while (!m_task.is_done()) {
 

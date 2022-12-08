@@ -31,20 +31,19 @@ Self::Self(std::string accessToken) :
         m_request.set_method(web::http::methods::GET);
 
         m_request.headers().add("X-Access-Token", m_accessToken);
+
         m_client.request(m_request).then([this](web::http::http_response response) {
             if (response.status_code() != web::http::status_codes::OK) {
-                std::cout << "Non OK code" << std::endl;
-                std::cout << response.to_string();
                 return;
             }
 
             auto json = nlohmann::json::parse(response.extract_string(true).get());
 
             if (json["response"] == "null") {
-                std::cout << "Response is 'null'" << std::endl;
                 return;
             }
 
+            // This just grabs the responses from the json object and parses it
             m_userID = json["response"]["id"];
             m_userID.erase(std::remove(m_userID.begin(), m_userID.end(), '\"'), m_userID.end());
 
@@ -61,9 +60,118 @@ Self::Self(std::string accessToken) :
             m_userEmail = json["response"]["email"];
             m_userEmail.erase(std::remove(m_userEmail.begin(), m_userEmail.end(), '\"'), m_userEmail.end());
 
-            m_isSMS = (json["response"]["sms"] == "\"true\"" ? true : false);
+            m_isSMS = json["response"]["sms"];
+
+            m_locale = json["response"]["locale"];
+            m_locale.erase(std::remove(m_locale.begin(), m_locale.end(), '\"'), m_locale.end());
+
+            m_shareURL = json["response"]["share_url"];
+            m_shareURL.erase(std::remove(m_locale.begin(), m_locale.end(), '\"'), m_locale.end());
+
+            m_shareQRCodeURL = json["response"]["share_qr_code_url"];
+            m_shareQRCodeURL.erase(std::remove(m_shareQRCodeURL.begin(), m_shareQRCodeURL.end(), '\"'), m_shareQRCodeURL.end());
+
 
         }).wait();
     });
+}
+
+Self::~Self() {
+    // Waits for the task to finish so that we don't have the possibility
+    // of the main thread finishing before the task
     m_task.wait();
+}
+
+pplx::task<web::http::status_code> Self::push() {
+    // Waits for the task to be complete just in case there are tasks happening
+    // that need to finish before we push
+    m_task.wait();
+
+    return pplx::task<web::http::status_code>([this]() -> web::http::status_code {
+        nlohmann::json json;
+
+        // Adds stuff to the JSON object to push to the API
+        json["email"] = m_userEmail;
+        json["facebook_connected"] = m_isFacebookConnected;
+        json["image_url"] = m_userProfileImageURL;
+        json["locale"] = m_locale;
+        json["name"] = m_userNickname;
+        json["phone_number"] = m_userPhoneNumber;
+        json["sms"] = m_isSMS;
+        json["twitter_connected"] = m_isTwitterConnected;
+        json["zip_code"] = m_zipCode;
+
+        m_request.set_method(web::http::methods::POST);
+
+        m_request.set_body(json.dump());
+        web::http::status_code statusCode;
+
+        m_client.request(m_request).then([&statusCode](web::http::http_response response) {
+            statusCode = response.status_code();
+            std::cout << response.extract_string(true).get();
+            return;
+        }).wait();
+        return statusCode;
+    });
+}
+
+pplx::task<web::http::status_code> Self::pull() {
+    // Waits for the task to be complete just in case there are tasks happening
+    // that need to finish before we pull
+    while (!m_task.is_done()) {
+
+    }
+
+    return pplx::task<web::http::status_code>([this]() -> web::http::status_code {
+        m_request.set_method(web::http::methods::GET);
+
+        m_request.set_body("");
+
+        web::http::status_code statusCode;
+
+        m_client.request(m_request).then([&statusCode, this](web::http::http_response response) {
+
+            statusCode = response.status_code();
+
+            if (statusCode != web::http::status_codes::OK) {
+                return;
+            }
+
+            auto json = nlohmann::json::parse(response.extract_string(true).get());
+
+            if (json["response"] == "null") {
+                return;
+            }
+
+            // This just grabs the responses from the json object and parses it
+            m_userID = json["response"]["id"];
+            m_userID.erase(std::remove(m_userID.begin(), m_userID.end(), '\"'), m_userID.end());
+
+            m_userPhoneNumber = json["response"]["phone_number"];
+            m_userPhoneNumber.erase(std::remove(m_userPhoneNumber.begin(), m_userPhoneNumber.end(), '\"'), m_userPhoneNumber.end());
+
+            m_userProfileImageURL = json["response"]["image_url"];
+            m_userProfileImageURL.erase(std::remove(m_userProfileImageURL.begin(), m_userProfileImageURL.end(), '\"'), m_userProfileImageURL.end());
+
+            m_createdAt = json["response"]["created_at"];
+
+            m_updatedAt = json["response"]["updated_at"];
+
+            m_userEmail = json["response"]["email"];
+            m_userEmail.erase(std::remove(m_userEmail.begin(), m_userEmail.end(), '\"'), m_userEmail.end());
+
+            m_isSMS = json["response"]["sms"];
+
+            m_locale = json["response"]["locale"];
+            m_locale.erase(std::remove(m_locale.begin(), m_locale.end(), '\"'), m_locale.end());
+
+            m_shareURL = json["response"]["share_url"];
+            m_shareURL.erase(std::remove(m_locale.begin(), m_locale.end(), '\"'), m_locale.end());
+
+            m_shareQRCodeURL = json["response"]["share_qr_code_url"];
+            m_shareQRCodeURL.erase(std::remove(m_shareQRCodeURL.begin(), m_shareQRCodeURL.end(), '\"'), m_shareQRCodeURL.end());
+
+        }).wait();
+        return statusCode;
+    });
 }

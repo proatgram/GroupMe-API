@@ -38,6 +38,8 @@ namespace GroupMe {
 
             Picture(std::string accessToken, web::uri contentURL);
 
+            ~Picture();
+
             pplx::task<std::string> upload();
 
         private:
