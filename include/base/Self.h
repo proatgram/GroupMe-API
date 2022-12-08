@@ -35,6 +35,12 @@ namespace GroupMe {
         public:
             Self(std::string accessToken);
 
+            ~Self();
+
+            pplx::task<web::http::status_code> push();
+
+            pplx::task<web::http::status_code> pull();
+
         private:
             std::string m_accessToken;
 

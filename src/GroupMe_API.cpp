@@ -30,6 +30,10 @@ Main::Main(std::string token) :
 
     Self self(m_token);
 
+    self.setNickname("TheTimBrick");
+
+    self.push().wait();
+
     /*
     std::fstream file("/home/thetimbrick/message.txt", std::ios::in | std::ios::out | std::ios::binary);
 

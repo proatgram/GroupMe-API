@@ -70,6 +70,12 @@ Picture::Picture(std::string accessToken, web::uri contentURL) :
     });
 }
 
+Picture::~Picture() {
+    if (!m_task.is_done()) {
+        m_task.wait();
+    }
+}
+
 pplx::task<std::string> Picture::upload() {
     while (!m_task.is_done()) {
 
