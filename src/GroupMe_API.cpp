@@ -34,6 +34,8 @@ Main::Main(std::string token) :
 
     self.push().wait();
 
+    self.setNickname("UnsafeTheTimBrick");
+
     /*
     std::fstream file("/home/thetimbrick/message.txt", std::ios::in | std::ios::out | std::ios::binary);
 
