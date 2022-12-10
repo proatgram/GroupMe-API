@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
+#include <mutex>
 
 #include <cpprest/http_client.h>
 #include <cpprest/http_headers.h>
@@ -41,6 +42,38 @@ namespace GroupMe {
 
             pplx::task<web::http::status_code> pull();
 
+            std::string getNickname() const;
+
+            void setNickname(const std::string& userNickname);
+
+            std::string getProfileImageURL() const;
+
+            void setProfileImageURL(const std::string& userProfileImageURL);
+
+            std::string getPhoneNumber() const;
+
+            void setPhoneNumber(const std::string& userPhoneNumber);
+
+            std::string getEmail() const;
+
+            void setEmail(const std::string& userEmail);
+
+            std::string getZipcode() const;
+
+            void setZipcode(const std::string& zipcode);
+
+            bool usingSMS() const;
+
+            void setUsingSMS(bool usingSMS);
+
+            bool getFacebookConnected() const;
+
+            void setFacebookConnected(bool facebookConnected);
+
+            bool getTwitterConnected() const;
+
+            void setTwitterConnected(bool twitterConnected);
+
         private:
             std::string m_accessToken;
 
@@ -49,5 +82,7 @@ namespace GroupMe {
             web::http::client::http_client m_client;
 
             pplx::task<void> m_task;
+
+            mutable std::mutex m_mutex;
     };
 }
