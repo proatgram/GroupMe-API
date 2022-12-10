@@ -90,6 +90,7 @@ pplx::task<web::http::status_code> Self::push() {
     return pplx::task<web::http::status_code>([this]() -> web::http::status_code {
         nlohmann::json json;
 
+        std::lock_guard<std::mutex> lock(m_mutex);
         // Adds stuff to the JSON object to push to the API
         json["email"] = m_userEmail;
         json["facebook_connected"] = m_isFacebookConnected;
@@ -99,7 +100,7 @@ pplx::task<web::http::status_code> Self::push() {
         json["phone_number"] = m_userPhoneNumber;
         json["sms"] = m_isSMS;
         json["twitter_connected"] = m_isTwitterConnected;
-        json["zip_code"] = m_zipCode;
+        json["zip_code"] = m_zipcode;
 
         m_request.set_method(web::http::methods::POST);
 
@@ -149,6 +150,9 @@ pplx::task<web::http::status_code> Self::pull() {
             }
 
             // This just grabs the responses from the json object and parses it
+
+            std::lock_guard<std::mutex> lock(m_mutex);
+
             m_userID = json["response"]["id"];
             m_userID.erase(std::remove(m_userID.begin(), m_userID.end(), '\"'), m_userID.end());
 
@@ -179,4 +183,84 @@ pplx::task<web::http::status_code> Self::pull() {
         }).wait();
         return statusCode;
     });
+}
+
+std::string Self::getNickname() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_userNickname;
+}
+
+void Self::setNickname(const std::string& userNickname) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_userNickname = userNickname;
+}
+
+std::string Self::getProfileImageURL() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_userProfileImageURL;
+}
+
+void Self::setProfileImageURL(const std::string& userProfileImageURL) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_userProfileImageURL = userProfileImageURL;
+}
+
+std::string Self::getPhoneNumber() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_userPhoneNumber;
+}
+
+void Self::setPhoneNumber(const std::string& userPhoneNumber) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_userPhoneNumber = userPhoneNumber;
+}
+
+std::string Self::getEmail() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_userEmail;
+}
+
+void Self::setEmail(const std::string& userEmail) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_userEmail = userEmail;
+}
+
+std::string Self::getZipcode() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_zipcode;
+}
+
+void Self::setZipcode(const std::string& zipcode) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_zipcode = zipcode;
+}
+
+bool Self::usingSMS() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_isSMS;
+}
+
+void Self::setUsingSMS(bool usingSMS) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_isSMS = usingSMS;
+}
+
+bool Self::getFacebookConnected() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_isFacebookConnected;
+}
+
+void Self::setFacebookConnected(bool facebookConnected) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_isFacebookConnected = facebookConnected;
+}
+
+bool Self::getTwitterConnected() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_isTwitterConnected;
+}
+
+void Self::setTwitterConnected(bool twitterConnected) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_isTwitterConnected = twitterConnected;
 }

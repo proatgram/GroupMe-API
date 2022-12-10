@@ -27,9 +27,15 @@ User::User(const std::string& userID, const std::string& userNickname, const std
     m_userPhoneNumber(userPhoneNumber),
     m_userEmail(userEmail),
     m_userGUID(userGUID),
+    m_locale(),
+    m_zipcode(),
+    m_shareURL(),
+    m_shareQRCodeURL(),
     m_createdAt(),
     m_updatedAt(),
-    m_isSMS(false)
+    m_isSMS(false),
+    m_isFacebookConnected(false),
+    m_isTwitterConnected(false)
 {
 
 }
@@ -40,10 +46,15 @@ User::User() :
     m_userProfileImageURL(),
     m_userPhoneNumber(),
     m_userEmail(),
-    m_userGUID(),
+    m_locale(),
+    m_zipcode(),
+    m_shareURL(),
+    m_shareQRCodeURL(),
     m_createdAt(),
     m_updatedAt(),
-    m_isSMS(false)
+    m_isSMS(false),
+    m_isFacebookConnected(false),
+    m_isTwitterConnected(false)
 {
 
 }
@@ -104,12 +115,12 @@ void User::setLocal(const std::string& locale) {
     m_locale = locale;
 }
 
-std::string User::getZipCode() const {
-    return m_zipCode;
+std::string User::getZipcode() const {
+    return m_zipcode;
 }
 
-void User::setZipCode(const std::string& zipCode) {
-    m_zipCode = zipCode;
+void User::setZipcode(const std::string& zipcode) {
+    m_zipcode = zipcode;
 }
 
 std::string User::getShareURL() const {

@@ -58,9 +58,9 @@ namespace GroupMe {
 
             void setLocal(const std::string& locale);
 
-            std::string getZipCode() const;
+            std::string getZipcode() const;
 
-            void setZipCode(const std::string& zipCode);
+            void setZipcode(const std::string& zipcode);
 
             std::string getShareURL() const;
 
@@ -110,7 +110,7 @@ namespace GroupMe {
 
             std::string m_locale;
 
-            std::string m_zipCode;
+            std::string m_zipcode;
 
             std::string m_shareURL;
 
