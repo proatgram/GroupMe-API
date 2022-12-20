@@ -30,6 +30,7 @@ Self::Self(std::string accessToken) :
     m_task = pplx::task<void>([this]() -> void {
         m_request.set_method(web::http::methods::GET);
 
+        //
         m_request.headers().add("X-Access-Token", m_accessToken);
 
         m_client.request(m_request).then([this](web::http::http_response response) {
@@ -91,6 +92,7 @@ pplx::task<web::http::status_code> Self::push() {
         nlohmann::json json;
 
         std::lock_guard<std::mutex> lock(m_mutex);
+
         // Adds stuff to the JSON object to push to the API
         json["email"] = m_userEmail;
         json["facebook_connected"] = m_isFacebookConnected;
@@ -106,13 +108,13 @@ pplx::task<web::http::status_code> Self::push() {
 
         m_request.set_body(json.dump());
 
+        // API endpoint
         m_client = web::http::client::http_client("https://api.groupme.com/v3/users/update");
 
         web::http::status_code statusCode;
 
         m_client.request(m_request).then([&statusCode](web::http::http_response response) {
             statusCode = response.status_code();
-            std::cout << response.extract_string(true).get();
             return;
         }).wait();
         return statusCode;
@@ -122,17 +124,18 @@ pplx::task<web::http::status_code> Self::push() {
 pplx::task<web::http::status_code> Self::pull() {
     // Waits for the task to be complete just in case there are tasks happening
     // that need to finish before we pull
-    while (!m_task.is_done()) {
-
-    }
+    m_task.wait();
 
     return pplx::task<web::http::status_code>([this]() -> web::http::status_code {
         m_request.set_method(web::http::methods::GET);
 
+        // Resets the body of the request just incase theres
+        // old data in it.
         m_request.set_body("");
 
         web::http::status_code statusCode;
 
+        // Again, the API endpoint
         m_client = web::http::client::http_client("https://api.groupme.com/v3/users/me");
 
         m_client.request(m_request).then([&statusCode, this](web::http::http_response response) {
@@ -145,14 +148,16 @@ pplx::task<web::http::status_code> Self::pull() {
 
             auto json = nlohmann::json::parse(response.extract_string(true).get());
 
+            // The response section of the JSON will be null
+            // if a problem occured
             if (json["response"] == "null") {
+                //TODO Add checking to the errors section of the JSON if the resonse is null
                 return;
             }
 
-            // This just grabs the responses from the json object and parses it
-
             std::lock_guard<std::mutex> lock(m_mutex);
 
+            // This just grabs the responses from the json object and parses it
             m_userID = json["response"]["id"];
             m_userID.erase(std::remove(m_userID.begin(), m_userID.end(), '\"'), m_userID.end());
 
@@ -184,6 +189,12 @@ pplx::task<web::http::status_code> Self::pull() {
         return statusCode;
     });
 }
+
+// Overridden functions to prevent data race senarios
+// Functions must be const for User::operator== and User::operator!=
+// But also must be thread safe. It would be inifeceint to have this in
+// the `User` class because this is the only time stuff is being accessed
+// in another thread
 
 std::string Self::getNickname() const {
     std::lock_guard<std::mutex> lock(m_mutex);

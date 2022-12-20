@@ -38,3 +38,7 @@ build/*
 # Other
 *.kdev4 
 compile_commands.json
+
+# Doxygen
+man/
+html/
