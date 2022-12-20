@@ -189,12 +189,13 @@ pplx::task<web::http::status_code> Self::pull() {
         return statusCode;
     });
 }
-
-// Overridden functions to prevent data race senarios
-// Functions must be const for User::operator== and User::operator!=
-// But also must be thread safe. It would be inifeceint to have this in
-// the `User` class because this is the only time stuff is being accessed
-// in another thread
+/*
+ * Overridden functions to prevent data race senarios
+ * Functions must be const for User::operator== and User::operator!=
+ * But also must be thread safe. It would be inifeceint to have this in
+ * the `User` class because this is the only time stuff is being accessed
+ * in another thread
+ */
 
 std::string Self::getNickname() const {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -252,6 +253,7 @@ bool Self::usingSMS() const {
 }
 
 void Self::setUsingSMS(bool usingSMS) {
+    //TODO There should be stuff here to create SMS mode possibly.
     std::lock_guard<std::mutex> lock(m_mutex);
     m_isSMS = usingSMS;
 }
@@ -262,6 +264,7 @@ bool Self::getFacebookConnected() const {
 }
 
 void Self::setFacebookConnected(bool facebookConnected) {
+    //TODO There should be stuff here to add Facebook to the users account
     std::lock_guard<std::mutex> lock(m_mutex);
     m_isFacebookConnected = facebookConnected;
 }
@@ -272,6 +275,7 @@ bool Self::getTwitterConnected() const {
 }
 
 void Self::setTwitterConnected(bool twitterConnected) {
+    //TODO There should be stuff here to add Twitter to the users account
     std::lock_guard<std::mutex> lock(m_mutex);
     m_isTwitterConnected = twitterConnected;
 }

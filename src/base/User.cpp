@@ -204,5 +204,6 @@ bool User::operator==(const User& user) const {
 }
 
 bool User::operator!=(const User& user) const {
+    // This legit just returns the oposite of the equals comparison operator
     return !(this->operator==(user));
 }

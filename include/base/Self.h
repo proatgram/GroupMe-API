@@ -34,7 +34,7 @@
 namespace GroupMe {
     /**
      * This class holds user data for the current user, such as the nickname,
-     * access token, phone number, etc. like the `GroupMe::User` class but has the ability to upload and download
+     * access token, phone number, etc. like the  `GroupMe::User` class, but has the ability to upload and download
      * this data to the server using the API
      *
      * @brief Class used to represent the current authenticated user
