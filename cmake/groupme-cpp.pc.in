@@ -1,0 +1,10 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+
+Name: GroupMe-cpp
+Description: This is a library that provides a simple and easy way to communicate with the GroupMe API
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lgroupme
+Cflags: -I${includedir}
