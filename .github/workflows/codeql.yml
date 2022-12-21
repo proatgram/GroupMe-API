@@ -39,7 +39,7 @@ jobs:
     steps:
     - uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: libcpprest-dev nlohmann-json3-dev libavcodec-dev libavformat-dev
+        packages: libcpprest-dev nlohmann-json3-dev libavcodec-dev libavformat-dev libboost-all-dev
         
     - name: Checkout repository
       uses: actions/checkout@v3
