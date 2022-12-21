@@ -25,10 +25,44 @@
 #include <cpprest/json.h>
 
 namespace GroupMe {
+    /**
+     * This class grabs the access token for a user based on a
+     * defined app URL that is created from a callback URL.
+     *
+     * This class creates a simple web server that listens on the callback URL
+     * for an authentication token sent from the appURL.
+     *
+     * The app URL is created from creating a new application in the
+     * GroupMe developers site. https://dev.groupme.com/applications
+     *
+     * @brief Authenticats a user
+     *
+     */
     class Authenticator {
         public:
+            /**
+             * @brief Constructs a new `GroupMe::Authenticator` object
+             *
+             * @param callbackURL The callback URL that listens for the token
+             *
+             * @param appURL The app URL created at the [Applications creation](https://dev.groupme.com/applications) site
+             *
+             */
             Authenticator(std::string callbackURL, std::string appURL);
             
+            /**
+             * This will start to listen on the callback URL for the token.
+             *
+             * The user will have to visit the app URL in a browser to sign in.
+             *
+             * If the application was created correctly it should send a token to
+             * the callback URL
+             *
+             * @brief Gets the token
+             *
+             * @return std::string
+             *
+             */
             std::string getToken();
 
         private:

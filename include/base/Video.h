@@ -72,7 +72,7 @@ namespace GroupMe {
              * @brief Constructs a new `GroupMe::Video` object
              *
              * @param accessToken The senders access token which is needed to upload the video
-             * @param contentvector A vector full of data to upload
+             * @param contentVector A vector full of data to upload
              * @param conversationID The ID of the conversation to upload the Video to
              *
              */
@@ -106,6 +106,8 @@ namespace GroupMe {
              * `std::string url = video.upload().get();`
              *
              * @brief Uploads the video to the server
+             *
+             * @return pplx::tasl<std::string>
              *
              */
             pplx::task<std::string> upload();

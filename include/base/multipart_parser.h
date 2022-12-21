@@ -40,6 +40,8 @@ https://github.com/AndsonYe/MultipartEncoder
 namespace web{
 namespace http{
 
+//TODO Figure out what in the heck is happening in this class
+
 class MultipartParser
 {
 public:

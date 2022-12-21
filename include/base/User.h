@@ -23,17 +23,17 @@
 #include <string>
 #include <memory>
 
-/**
- * This class holds user data for any generic user, such as the nickname,
- * phone number, email, etc.
- *
- * If you want to hold data for a user that has an access token (One that has been authenticated)
- * then you should use `GroupMe::Self`
- *
- * @brief Class to represent generic users
- *
- */
 namespace GroupMe {
+    /**
+     * This class holds user data for any generic user, such as the nickname,
+     * phone number, email, etc.
+     *
+     * If you want to hold data for a user that has an access token (One that has been authenticated)
+     * then you should use `GroupMe::Self`
+     *
+     * @brief Class to represent generic users
+     *
+     */
     class User {
         public:
             /**
@@ -64,6 +64,8 @@ namespace GroupMe {
             /**
              * @brief Gets the users ID
              *
+             * @return std::string
+             *
              */
             std::string getID() const;
 
@@ -77,6 +79,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets the users nickname
+             *
+             * @return std::string
              *
              */
             std::string getNickname() const;
@@ -92,6 +96,8 @@ namespace GroupMe {
             /**
              * @brief Gets the users profile image URL
              *
+             * @return std::string
+             *
              */
             std::string getProfileImageURL() const;
 
@@ -105,6 +111,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets the users phone number
+             *
+             * @return std::string
              *
              */
             std::string getPhoneNumber() const;
@@ -120,6 +128,8 @@ namespace GroupMe {
             /**
              * @brief Gets the users email
              *
+             * @return std::string
+             *
              */
             std::string getEmail() const;
 
@@ -133,6 +143,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets the users GUID
+             *
+             * @return std::string
              *
              */
             std::string getGUID() const;
@@ -148,6 +160,8 @@ namespace GroupMe {
             /**
              * @brief Gets the users locale
              *
+             * @return std::string
+             *
              */
             std::string getLocale() const;
 
@@ -161,6 +175,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets the users zipcode
+             *
+             * @return std::string
              *
              */
             std::string getZipcode() const;
@@ -178,6 +194,8 @@ namespace GroupMe {
              *
              * @brief Gets the users share URL.
              *
+             * @return std::string
+             *
              */
             std::string getShareURL() const;
 
@@ -191,6 +209,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets the users QR Code share URL
+             *
+             * @return std::string
              *
              */
             std::string getShareQRCodeURL() const;
@@ -206,6 +226,8 @@ namespace GroupMe {
             /**
              * @brief Gets the time the account was created at
              *
+             * @return unsigned int
+             *
              */
             unsigned int getCreatedAt() const;
 
@@ -219,6 +241,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets the time the account was last updated at
+             *
+             * @return unsigned int
              *
              */
             unsigned int getUpdatedAt() const;
@@ -234,6 +258,8 @@ namespace GroupMe {
             /**
              * @brief Returns whether or not the user is set up to use the SMS feature
              *
+             * @return bool
+             *
              */
             bool usingSMS() const;
 
@@ -248,6 +274,8 @@ namespace GroupMe {
             /**
              * @brief Returns whether or not Facebook is connected to the users account
              *
+             * @return bool
+             *
              */
             bool getFacebookConnected() const;
 
@@ -261,6 +289,8 @@ namespace GroupMe {
 
             /**
              * @brief Returns whether or not Twitter is connected to the users account
+             *
+             * @return bool
              *
              */
             bool getTwitterConnected() const;

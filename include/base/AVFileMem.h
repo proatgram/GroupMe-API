@@ -36,19 +36,64 @@ namespace GroupMe {
 
     namespace Util {
 
+        /**
+         * This class is a utility class to open video information using
+         * libavformat from in memory instead of a file.
+         *
+         * @brief A utility class to open information for a video
+         *
+         */
         class InMemoryAVFormat {
             public:
 
+                /**
+                 * @brief Constructs a new `GroupMe::Util::InMemoryAVFormat` object
+                 *
+                 */
                 InMemoryAVFormat();
 
+                /**
+                 * @brief Opens a video from a vector
+                 *
+                 * @param data A vector of data
+                 *
+                 * @param options Options for the AVFormat
+                 *
+                 * @returns int
+                 *
+                 */
                 int openMemory(const std::vector<uint8_t>& data, AVDictionary** options = nullptr);
 
+                /**
+                 * @brief Opens a video from a vector
+                 *
+                 * @param data A vector of data
+                 *
+                 * @param options Options for the AVFormat
+                 *
+                 * @returns int
+                 *
+                 */
                 int openMemory(std::vector<uint8_t>&& data, AVDictionary** options = nullptr);
 
+                /**
+                 * @brief Closes the in memory context
+                 *
+                 */
                 void closeMemory();
 
+                /**
+                 * @brief Closes the in memory context
+                 *
+                 */
                 static void closeMemory(std::shared_ptr<AVFormatContext> context);
 
+                /**
+                 * @brief Gets the AVFormatContext. **THIS SHOULD NOT BE COPIED**
+                 *
+                 * @return std::shared_ptr<AVFormatContext>
+                 *
+                 */
                 std::shared_ptr<AVFormatContext> get();
 
             private:
