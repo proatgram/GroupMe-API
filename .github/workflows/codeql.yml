@@ -37,10 +37,6 @@ jobs:
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
-    - uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: libcpprest-dev nlohmann-json3-dev libavcodec-dev libavformat-dev libboost-all-dev
-        
     - name: Checkout repository
       uses: actions/checkout@v3
 
@@ -59,6 +55,11 @@ jobs:
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
+    - name: Cache APT Packages
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: libcpprest-dev nlohmann-json3-dev libavcodec-dev libavformat-dev libboost-all-dev
+        
     - name: Autobuild
       uses: github/codeql-action/autobuild@v2
 
