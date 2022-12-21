@@ -25,6 +25,10 @@
 
 namespace GroupMe {
 
+    /**
+     * @brief Exception for large files
+     *
+     */
     class LargeFile : public std::exception {
         public:
             char* what();

@@ -102,6 +102,8 @@ namespace GroupMe {
              *
              * @brief Uploads the file to the server
              *
+             * @return pplx::task<std::string>
+             *
              */
             pplx::task<std::string> upload();
 

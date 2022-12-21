@@ -62,17 +62,23 @@ namespace GroupMe {
             /**
              * @brief Pushes all of the user data to the server
              *
+             * @return pplx::task<web::http::status_code>
+             *
              */
             pplx::task<web::http::status_code> push();
 
             /**
              * @brief Pulls user data from the server
              *
+             * @return pplx::task<web::http::status_code>
+             *
              */
             pplx::task<web::http::status_code> pull();
 
             /**
              * @brief Gets the nickname of the authenticated user
+             *
+             * @return std::string
              *
              */
             std::string getNickname() const;
@@ -87,6 +93,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets the profile image URL of the authenticated user
+             *
+             * @return std::string
              *
              */
             std::string getProfileImageURL() const;
@@ -106,6 +114,8 @@ namespace GroupMe {
             /**
              * @brief Gets the phone number of the authenticated user
              *
+             * @return std::string
+             *
              */
             std::string getPhoneNumber() const;
 
@@ -119,6 +129,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets the email of the authenticated user
+             *
+             * @return std::string
              *
              */
             std::string getEmail() const;
@@ -134,6 +146,8 @@ namespace GroupMe {
             /**
              * @brief Gets the zipcode of the authenticated user
              *
+             * @return std::string
+             *
              */
             std::string getZipcode() const;
 
@@ -148,6 +162,8 @@ namespace GroupMe {
             /**
              * @brief Returns whether or not the user is set up to use the SMS feature
              *
+             * @return std::string
+             *
              */
             bool usingSMS() const;
 
@@ -160,6 +176,8 @@ namespace GroupMe {
             void setUsingSMS(bool usingSMS);
             /**
              * @brief Gets whether or not Facebook is connected to the users account
+             *
+             * @return bool
              *
              */
             bool getFacebookConnected() const;
@@ -174,6 +192,8 @@ namespace GroupMe {
 
             /**
              * @brief Gets whether or not the user has their Twitter connected
+             *
+             * @return bool
              *
              */
             bool getTwitterConnected() const;
