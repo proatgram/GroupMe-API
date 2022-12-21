@@ -20,7 +20,7 @@
 
 using namespace GroupMe;
 
-Picture::Picture(std::string accessToken, std::filesystem::path path) :
+Picture::Picture(const std::string& accessToken, const std::filesystem::path& path) :
     Attatchment(path, Attatchment::Types::Picture, accessToken),
     m_request(),
     m_client("https://image.groupme.com/pictures"),
@@ -42,7 +42,7 @@ Picture::Picture(std::string accessToken, std::filesystem::path path) :
     });
 }
 
-Picture::Picture(std::string accessToken, web::uri contentURL) :
+Picture::Picture(const std::string& accessToken, const web::uri& contentURL) :
     Attatchment(contentURL, Attatchment::Types::Picture, accessToken),
     m_request(),
     m_client(m_content),
@@ -85,16 +85,11 @@ pplx::task<std::string> Picture::upload() {
                     return;
                 }
 
-                std::stringstream strm(response.extract_string(true).get());
+                m_json = nlohmann::json::parse(response.extract_string(true).get());
 
-                strm >> m_json;
+                m_content = m_json["payload"]["picture_url"].dump();
 
-                std::string tmp = m_json["payload"]["picture_url"].dump(1);
-
-                tmp.erase(tmp.cend() - 1);
-                tmp.erase(tmp.cbegin());
-
-                m_content = tmp;
+                m_content.erase(std::remove(m_content.begin(), m_content.end(), '"'), m_content.end());
 
         }).wait();
         return m_content;

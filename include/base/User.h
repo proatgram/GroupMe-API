@@ -279,36 +279,94 @@ namespace GroupMe {
 
         protected:
             
+            /**
+             * @brief The users ID
+             *
+             */
             std::string m_userID;
 
+            /**
+             * @brief The users name/nickname
+             *
+             */
             std::string m_userNickname;
 
+            /**
+             * @brief The users profile image URL
+             *
+             */
             std::string m_userProfileImageURL;
 
+            /**
+             * @brief The users phone number
+             *
+             */
             std::string m_userPhoneNumber;
 
+            /**
+             * @brief The users email
+             *
+             */
             std::string m_userEmail;
 
+            /**
+             * @brief The users GUID
+             *
+             */
             std::string m_userGUID;
 
+            /**
+             * @brief The users locale
+             *
+             */
             std::string m_locale;
 
+            /**
+             * @brief The users zipcode
+             *
+             */
             std::string m_zipcode;
 
+            /**
+             * @brief The users share URL
+             *
+             */
             std::string m_shareURL;
 
+            /**
+             * @brief The users QR Code share URL
+             *
+             */
             std::string m_shareQRCodeURL;
 
+            /**
+             * @brief The time the account was created at
+             *
+             */
             unsigned int m_createdAt;
 
+            /**
+             * @brief The time the account was last updated at
+             *
+             */
             unsigned int m_updatedAt;
 
+            /**
+             * @brief Is the user using the SMS feature?
+             *
+             */
             bool m_isSMS;
 
+            /**
+             * @brief Is the users Facebook account connected?
+             *
+             */
             bool m_isFacebookConnected;
 
+            /**
+             * @brief Is the users Twitter account connected?
+             *
+             */
             bool m_isTwitterConnected;
-
-
     };
 }
