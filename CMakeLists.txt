@@ -43,7 +43,7 @@ add_executable(test "${CMAKE_SOURCE_DIR}/tests/main/src/main.cpp")
 
 target_include_directories(test PRIVATE "${CMAKE_SOURCE_DIR}/tests/main/include/" "${CMAKE_SOURCE_DIR}/include")
 
-target_link_libraries(test cpprestsdk::cpprest "${CMAKE_SOURCE_DIR}/build/libGroupMe.so" ${SSL_LINK_LIBRARIES} avformat)
+target_link_libraries(test cpprestsdk::cpprest "${CMAKE_CURRENT_BINARY_DIR}/libGroupMe.so" ${SSL_LINK_LIBRARIES} avformat)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/groupme-cpp.pc.in
