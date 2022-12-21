@@ -30,6 +30,9 @@ Video::Video(const std::string& accessToken, const std::filesystem::path& path, 
     m_json()
 {
     m_task = pplx::task<void>([this]() {
+        // avformat is used to grab the duration of
+        // the video to make sure we don't upload a
+        // video that is too long. Max is 1 minute
         AVFormatContext* context = avformat_alloc_context();//m_avContext.get();
         avformat_open_input(&context, m_contentPath.c_str(), NULL, NULL);
 
@@ -49,7 +52,7 @@ Video::Video(const std::string& accessToken, const std::filesystem::path& path, 
     });
 }
 
-Video::Video(const std::string& accessToken, const std::vector<uint8_t>& contentVector, const std::string& conversationID) :
+Video::Video(const std::string& accessToken, const std::vector<unsigned char>& contentVector, const std::string& conversationID) :
     Attatchment(contentVector, Attatchment::Types::Video, accessToken),
     m_request(),
     m_client("https://video.groupme.com/transcode"),
@@ -122,15 +125,12 @@ pplx::task<std::string> Video::upload() {
     m_request.set_body(m_parser.GenBodyContent());
 
     return pplx::task<std::string>([this]() -> std::string {
-        std::stringstream strm(m_client.request(m_request).get().extract_string(true).get());
 
-        strm >> m_json;
+        m_json = nlohmann::json::parse(m_client.request(m_request).get().extract_string(true).get());
 
-        std::string tmp = m_json["status_url"].dump();
+        m_content = m_json["status_url"].dump();
 
-        tmp.erase(std::remove(tmp.begin(), tmp.end(), '"'), tmp.end());
-
-        m_content = tmp;
+        m_content.erase(std::remove(m_content.begin(), m_content.end(), '"'), m_content.end());
 
         m_client = web::http::client::http_client(m_content);
 
@@ -140,6 +140,9 @@ pplx::task<std::string> Video::upload() {
 
         bool done = false;
 
+        // The video upload request if done correctly give us
+        // a status url for an upload so we keep checking that
+        // until the url says that it is finished.
         while (!done) {
             m_client.request(m_request).then([&done, this](web::http::http_response response) {
                 if (response.status_code() == web::http::status_codes::Created) {
@@ -148,9 +151,7 @@ pplx::task<std::string> Video::upload() {
 
                     m_json.clear();
 
-                    std::stringstream strm(response.extract_string(true).get());
-
-                    strm >> m_json;
+                    m_json = nlohmann::json::parse(response.extract_string(true).get());
 
                     content = m_json["url"].dump();
 

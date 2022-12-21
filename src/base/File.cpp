@@ -20,7 +20,7 @@
 
 using namespace GroupMe;
 
-
+// This function just creates a url from two strings. Saves me a lot of pain.
 std::string File::getURL(std::string conversationID, std::string filename) {
     std::string url = "https://file.groupme.com/v1/[GROUP_ID]/files?name=[FILE_NAME]";
     url.replace(url.find("[GROUP_ID]"), 10, conversationID);
@@ -57,7 +57,7 @@ File::File(std::string accessToken, std::filesystem::path path, std::string conv
     });
 }
 
-File::File(std::string accessToken, std::vector<uint8_t> contentVector, std::string conversationID) :
+File::File(std::string accessToken, std::vector<unsigned char> contentVector, std::string conversationID) :
     Attatchment(contentVector, Attatchment::Types::File, accessToken),
     m_request(),
     m_conversationID(conversationID),
@@ -118,15 +118,12 @@ pplx::task<std::string> File::upload() {
     m_request.set_body(m_contentBinary);
 
     return pplx::task<std::string>([this]() -> std::string{
-        std::stringstream strm(m_client.request(m_request).get().extract_string(true).get());
 
-        strm >> m_json;
+        m_json = nlohmann::json::parse(m_client.request(m_request).get().extract_string(true).get());
 
-        std::string tmp = m_json["status_url"].dump();
+        m_content = m_json["status_url"].dump();
 
-        tmp.erase(std::remove(tmp.begin(), tmp.end(), '"'), tmp.end());
-
-        m_content = tmp;
+        m_content.erase(std::remove(m_content.begin(), m_content.end(), '"'), m_content.end());
 
         m_client = web::http::client::http_client(m_content);
 
@@ -144,9 +141,7 @@ pplx::task<std::string> File::upload() {
 
                     m_json.clear();
 
-                    std::stringstream strm(response.extract_string(true).get());
-
-                    strm >> m_json;
+                    m_json = nlohmann::json::parse(response.extract_string(true).get());
 
                     content = m_json["file_id"].dump();
 
