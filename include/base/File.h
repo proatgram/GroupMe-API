@@ -32,7 +32,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "base/Attatchment.h"
+#include "base/Attachment.h"
 #include "base/Exceptions.h"
 
 namespace GroupMe {
@@ -43,7 +43,7 @@ namespace GroupMe {
      * @brief A class used to hold a File attatchment
      *
      */
-    class File : public Attatchment {
+    class File : public Attachment {
         public:
             /**
              * This constructor should be used when you want to upload a

@@ -28,7 +28,7 @@
 #include <stdexcept>
 #include <nlohmann/json.hpp>
 
-#include "base/Attatchment.h"
+#include "base/Attachment.h"
 
 namespace GroupMe {
     //TODO Add a constructor to upload as with a `std::vector<unsigned char>`
@@ -39,7 +39,7 @@ namespace GroupMe {
      * @brief A class used to hold a Picture attatchment
      *
      */
-    class Picture : public Attatchment {
+    class Picture : public Attachment {
         public:
             /**
              * This constructor should be used when you want to upload a

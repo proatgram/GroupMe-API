@@ -16,11 +16,11 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "base/Attatchment.h"
+#include "base/Attachment.h"
 
 using namespace GroupMe;
 
-Attatchment::Attatchment(const std::filesystem::path& contentPath, const Attatchment::Types& type, const std::string& accessToken) :
+Attachment::Attachment(const std::filesystem::path& contentPath, const Attachment::Types& type, const std::string& accessToken) :
     m_type(type),
     m_contentPath(contentPath),
     m_content(),
@@ -29,7 +29,7 @@ Attatchment::Attatchment(const std::filesystem::path& contentPath, const Attatch
 
 }
 
-Attatchment::Attatchment(const std::vector<unsigned char>& contentBinary, const Attatchment::Types& type, const std::string& accessToken) :
+Attachment::Attachment(const std::vector<unsigned char>& contentBinary, const Attachment::Types& type, const std::string& accessToken) :
     m_type(type),
     m_contentPath(),
     m_content(),
@@ -39,7 +39,7 @@ Attatchment::Attatchment(const std::vector<unsigned char>& contentBinary, const 
 
 }
 
-Attatchment::Attatchment(const web::uri& contentURL, const Attatchment::Types& type, const std::string& accessToken) :
+Attachment::Attachment(const web::uri& contentURL, const Attachment::Types& type, const std::string& accessToken) :
     m_type(type),
     m_contentPath(),
     m_content(contentURL.to_string()),
@@ -49,10 +49,10 @@ Attatchment::Attatchment(const web::uri& contentURL, const Attatchment::Types& t
 
 }
 
-Attatchment::Types Attatchment::getType() {
+Attachment::Types Attachment::getType() {
     return m_type;
 }
 
-web::uri Attatchment::getContentURL() {
+web::uri Attachment::getContentURL() {
     return m_content;
 }
