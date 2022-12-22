@@ -36,7 +36,7 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
-#include "base/Attatchment.h"
+#include "base/Attachment.h"
 #include "base/multipart_parser.h"
 #include "base/Exceptions.h"
 #include "base/AVFileMem.h"
@@ -49,7 +49,7 @@ namespace GroupMe {
      * @brief A class used to hold a Video attatchment
      *
      */
-    class Video : public Attatchment {
+    class Video : public Attachment {
         public:
             /**
              * This constructor should be used when you want to upload a

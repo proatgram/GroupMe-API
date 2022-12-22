@@ -30,7 +30,7 @@ std::string File::getURL(std::string conversationID, std::string filename) {
 
 
 File::File(std::string accessToken, std::filesystem::path path, std::string conversationID) :
-    Attatchment(path, Attatchment::Types::File, accessToken),
+    Attachment(path, Attachment::Types::File, accessToken),
     m_request(),
     m_conversationID(conversationID),
     m_task(),
@@ -58,7 +58,7 @@ File::File(std::string accessToken, std::filesystem::path path, std::string conv
 }
 
 File::File(std::string accessToken, std::vector<unsigned char> contentVector, std::string conversationID) :
-    Attatchment(contentVector, Attatchment::Types::File, accessToken),
+    Attachment(contentVector, Attachment::Types::File, accessToken),
     m_request(),
     m_conversationID(conversationID),
     m_task(),
@@ -79,7 +79,7 @@ File::File(std::string accessToken, std::vector<unsigned char> contentVector, st
 }
 
 File::File(std::string accessToken, web::uri contentURL, std::string conversationID) :
-    Attatchment(contentURL, Attatchment::Types::File, accessToken),
+    Attachment(contentURL, Attachment::Types::File, accessToken),
     m_request(),
     m_conversationID(conversationID),
     m_task(),

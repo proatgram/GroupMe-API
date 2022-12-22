@@ -21,7 +21,7 @@
 using namespace GroupMe;
 
 Picture::Picture(const std::string& accessToken, const std::filesystem::path& path) :
-    Attatchment(path, Attatchment::Types::Picture, accessToken),
+    Attachment(path, Attachment::Types::Picture, accessToken),
     m_request(),
     m_client("https://image.groupme.com/pictures"),
     m_json(),
@@ -43,7 +43,7 @@ Picture::Picture(const std::string& accessToken, const std::filesystem::path& pa
 }
 
 Picture::Picture(const std::string& accessToken, const web::uri& contentURL) :
-    Attatchment(contentURL, Attatchment::Types::Picture, accessToken),
+    Attachment(contentURL, Attachment::Types::Picture, accessToken),
     m_request(),
     m_client(m_content),
     m_json(),

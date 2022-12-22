@@ -42,7 +42,7 @@ namespace GroupMe {
      * @brief A class that can represent different types of attatchments
      *
      */
-    class Attatchment {
+    class Attachment {
         public:
             //TODO Implement Location and Emoji attatchment types
             /**
@@ -59,28 +59,28 @@ namespace GroupMe {
              * This constructor should be used when you want to create an attatchment from a local file
              * on your system. You can pass the path of the file into the contructor as a `std::filesystem::path`
              *
-             * @brief Contructs a new `GroupMe::Attatchment` object
+             * @brief Contructs a new `GroupMe::Attachment` object
              *
              * @param contentPath The path on the filesystem of the attatchment
-             * @param type The type of attatchment as a `GroupMe::Attatchment::Types`
+             * @param type The type of attatchment as a `GroupMe::Attachment::Types`
              * @param accessToken The senders access token which is needed to upload attatchments
              *
              */
-            Attatchment(const std::filesystem::path& contentPath, const Attatchment::Types& type, const std::string& accessToken);
+            Attachment(const std::filesystem::path& contentPath, const Attachment::Types& type, const std::string& accessToken);
 
             /**
              * This constructor should be used when you want to create an attatchment from a vector of
              * binary data. The data contained inside the vector should be a valid file type that can be
              * sent using GroupMe.
              *
-             * @brief Constructs a new `GroupMe::Attatchment` object
+             * @brief Constructs a new `GroupMe::Attachment` object
              *
              * @param contentBinary A `std::vector<char>` that containes binary data for an attatchment to send
-             * @param type The type of attatchment as a `GroupMe::Attatchment::Types`
+             * @param type The type of attatchment as a `GroupMe::Attachment::Types`
              * @param accessToken The senders access token which is needed to upload attatchments
              *
              */
-            Attatchment(const std::vector<unsigned char>& contentBinary, const Attatchment::Types& type, const std::string& accessToken);
+            Attachment(const std::vector<unsigned char>& contentBinary, const Attachment::Types& type, const std::string& accessToken);
 
             /**
              * This constructor should be used when you want to create an attatchment from data
@@ -89,28 +89,28 @@ namespace GroupMe {
              *
              * For example a URL like https://ExampleSite.com/content/02-20-22/example.jpg will work.
              *
-             * @brief Constructs a new `GroupMe::Attatchment` object
+             * @brief Constructs a new `GroupMe::Attachment` object
              *
              * @param contentURL A URL of a valid attatchment to send
-             * @param type The type of attatchment as a `GroupMe::Attatchment::Types`
+             * @param type The type of attatchment as a `GroupMe::Attachment::Types`
              * @param accessToken The senders access token which is needed to upload attatchments
              *
              */
-            Attatchment(const web::uri& contentURL, const Attatchment::Types& type, const std::string& accessToken);
+            Attachment(const web::uri& contentURL, const Attachment::Types& type, const std::string& accessToken);
 
             /**
              * This constructor should be used when you want to create an attatchment from data
              * in a string. Data should be the same as the constructor with the vector but encoded as
              * a string.
              *
-             * @brief Constructs a new `GroupMe::Attatchment` object
+             * @brief Constructs a new `GroupMe::Attachment` object
              *
              * @param content A `std::string` that contains binary data for an attatchment to send
-             * @param type The type of attatchment as a `GroupMe::Attatchment::Types`
+             * @param type The type of attatchment as a `GroupMe::Attachment::Types`
              * @param accessToken The senders access token which is needed to upload attatchments
              *
              */
-            Attatchment(const std::string& content, const Attatchment::Types& type, const std::string& accessToken);
+            Attachment(const std::string& content, const Attachment::Types& type, const std::string& accessToken);
 
             /**
              * The content URL will contain the endpoint of the uploaded attatchment
@@ -125,7 +125,7 @@ namespace GroupMe {
              * @brief Gets the type of attatchment
              *
              */
-            Attatchment::Types getType();
+            Attachment::Types getType();
 
         protected:
 
@@ -133,7 +133,7 @@ namespace GroupMe {
              * @brief The type of attatchment
              *
              */
-            Attatchment::Types m_type;
+            Attachment::Types m_type;
         
             /**
              * @brief The content path on the system disk
