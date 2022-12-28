@@ -42,11 +42,40 @@ namespace GroupMe {
              *
              * @brief Constructs a new `GroupMe::Message` object
              *
+             * @param sender The user who sent this message as a `GroupMe::User` wrapped in a `std::shared_ptr`
              * @param message Message text you want to send
              * @param GUID The messages unique GUID
              *
              */
-            Message(const std::string message, const std::string& GUID = "");
+            Message(std::shared_ptr<const GroupMe::User> sender, const std::string& message, const std::string& GUID = "");
+
+            /**
+             * This constructor should be used when you want to initialize a message
+             * with some text only, without specifying a sender. This constructor also
+             * has an optional parameter that is used as the GUID for the message. If it
+             * is not set here it will be generated later.
+             *
+             * @brief Constructs a new `GroupMe::Message` object
+             *
+             * @param message Message text you want to send
+             * @param GUID The message unique GUID
+             *
+             */
+            Message(const std::string& message, const std::string& GUID = "");
+
+            /**
+             * This constructor should be used when you want to initialize a message
+             * with only a sender. This constructor also has an optional parameter that
+             * is used as the GUID for the message. If it is not set here it will be
+             * generated later.
+             *
+             * @brief Constructs a new `GroupMe::Message` object
+             *
+             * @param sender The user who sent this message as a `GroupMe::User` wrapped in a `std::shared_ptr`
+             * @param GUID The message unique GUID
+             *
+             */
+            Message(std::shared_ptr<const GroupMe::User> sender, const std::string& GUID = "");
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -148,5 +177,25 @@ namespace GroupMe {
              *
              */
             void setSender(std::shared_ptr<const GroupMe::User> sender);
+        private:
+            std::string m_id;
+
+            std::string m_guid;
+
+            unsigned int m_createdAt;
+
+            bool m_pinned;
+
+            unsigned int m_pinnedAt;
+
+            std::shared_ptr<const GroupMe::User> m_pinnedBy;
+
+            std::shared_ptr<const GroupMe::User> m_sender;
+
+            std::vector<GroupMe::Attachment> m_attachments;
+
+            std::vector<std::shared_ptr<const GroupMe::User>> m_favoritedBy;
+
+            std::string m_text;
     };
 }

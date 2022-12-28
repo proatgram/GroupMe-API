@@ -19,3 +19,80 @@
 #include "base/Message.h"
 
 using namespace GroupMe;
+
+Message::Message(std::shared_ptr<const GroupMe::User> sender, const std::string& message, const std::string& GUID) :
+    m_id(),
+    m_guid(GUID),
+    m_createdAt(),
+    m_pinned(),
+    m_pinnedAt(),
+    m_pinnedBy(),
+    m_sender(sender),
+    m_attachments(),
+    m_favoritedBy(),
+    m_text(message)
+{
+
+}
+
+Message::Message(const std::string& message, const std::string& GUID) :
+    m_id(),
+    m_guid(GUID),
+    m_createdAt(),
+    m_pinned(),
+    m_pinnedAt(),
+    m_pinnedBy(),
+    m_sender(),
+    m_attachments(),
+    m_favoritedBy(),
+    m_text(message)
+{
+
+}
+
+Message::Message(std::shared_ptr<const GroupMe::User> sender, const std::string& GUID) :
+    m_id(),
+    m_guid(GUID),
+    m_createdAt(),
+    m_pinned(),
+    m_pinnedAt(),
+    m_pinnedBy(),
+    m_sender(sender),
+    m_attachments(),
+    m_favoritedBy(),
+    m_text()
+{
+
+}
+
+Message::Message(const std::string& GUID) :
+    m_id(),
+    m_guid(GUID),
+    m_createdAt(),
+    m_pinned(),
+    m_pinnedAt(),
+    m_pinnedBy(),
+    m_sender(),
+    m_attachments(),
+    m_favoritedBy(),
+    m_text()
+{
+
+}
+
+std::string Message::getID() {
+    return m_id;
+}
+
+void Message::setID(const std::string& id) {
+    m_id = id;
+}
+
+unsigned int Message::getCreatedAt() {
+    return m_createdAt;
+}
+
+void Message::setCreatedAt(unsigned int createdAt) {
+    m_createdAt = createdAt;
+}
+
