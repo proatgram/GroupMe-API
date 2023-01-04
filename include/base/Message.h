@@ -19,6 +19,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include "base/Attachment.h"
 #include "base/User.h"
@@ -47,7 +48,7 @@ namespace GroupMe {
              * @param GUID The messages unique GUID
              *
              */
-            Message(std::shared_ptr<const GroupMe::User> sender, const std::string& message, const std::string& GUID = "");
+            Message(std::shared_ptr<GroupMe::User> sender, const std::string& message, const std::string& GUID = "");
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -75,7 +76,7 @@ namespace GroupMe {
              * @param GUID The message unique GUID
              *
              */
-            Message(std::shared_ptr<const GroupMe::User> sender, const std::string& GUID = "");
+            Message(std::shared_ptr<GroupMe::User> sender, const std::string& GUID = "");
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -96,7 +97,7 @@ namespace GroupMe {
              * @return std::string
              *
              */
-            std::string getID();
+            std::string getID() const;
 
             /**
              * @brief Sets the ID of the message
@@ -112,7 +113,7 @@ namespace GroupMe {
              * @return unsigned int
              *
              */
-            unsigned int getCreatedAt();
+            unsigned int getCreatedAt() const;
 
             /**
              * @brief Sets when the message was created at
@@ -128,7 +129,7 @@ namespace GroupMe {
              * @return std::string
              *
              */
-            std::string getText();
+            std::string getText() const;
 
             /**
              * @brief Attaches text to the message
@@ -152,7 +153,7 @@ namespace GroupMe {
              * @return const std::vector<GroupMe::Attatchment>&
              *
              */
-            const std::vector<GroupMe::Attachment>& getAttachments();
+            const std::vector<GroupMe::Attachment>& getAttachments() const;
 
             /**
              * @brief Gets the user info for the sender of the message
@@ -160,7 +161,7 @@ namespace GroupMe {
              * @return std::shared_ptr<const GroupMe::User>
              *
              */
-            std::shared_ptr<const GroupMe::User> getSender();
+            std::shared_ptr<const GroupMe::User> getSender() const;
 
             /**
              * @brief Sets the user info for the sender of the message
@@ -168,15 +169,8 @@ namespace GroupMe {
              * @param sender The sender of the message
              *
              */
-            void setSender(std::shared_ptr<GroupMe::User> sender);
+            void setSender(const std::shared_ptr<GroupMe::User>& sender);
 
-            /**
-             * @brief Sets the user info for the sender of the message
-             *
-             * @param sender The sender of the message
-             *
-             */
-            void setSender(std::shared_ptr<const GroupMe::User> sender);
         private:
             std::string m_id;
 
@@ -188,13 +182,13 @@ namespace GroupMe {
 
             unsigned int m_pinnedAt;
 
-            std::shared_ptr<const GroupMe::User> m_pinnedBy;
+            std::shared_ptr<GroupMe::User> m_pinnedBy;
 
-            std::shared_ptr<const GroupMe::User> m_sender;
+            std::shared_ptr<GroupMe::User> m_sender;
 
             std::vector<GroupMe::Attachment> m_attachments;
 
-            std::vector<std::shared_ptr<const GroupMe::User>> m_favoritedBy;
+            std::vector<std::shared_ptr<GroupMe::User>> m_favoritedBy;
 
             std::string m_text;
     };
