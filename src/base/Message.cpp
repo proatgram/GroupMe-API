@@ -20,7 +20,7 @@
 
 using namespace GroupMe;
 
-Message::Message(std::shared_ptr<const GroupMe::User> sender, const std::string& message, const std::string& GUID) :
+Message::Message(std::shared_ptr<GroupMe::User> sender, const std::string& message, const std::string& GUID) :
     m_id(),
     m_guid(GUID),
     m_createdAt(),
@@ -50,7 +50,7 @@ Message::Message(const std::string& message, const std::string& GUID) :
 
 }
 
-Message::Message(std::shared_ptr<const GroupMe::User> sender, const std::string& GUID) :
+Message::Message(std::shared_ptr<GroupMe::User> sender, const std::string& GUID) :
     m_id(),
     m_guid(GUID),
     m_createdAt(),
@@ -80,7 +80,7 @@ Message::Message(const std::string& GUID) :
 
 }
 
-std::string Message::getID() {
+std::string Message::getID() const {
     return m_id;
 }
 
@@ -88,7 +88,7 @@ void Message::setID(const std::string& id) {
     m_id = id;
 }
 
-unsigned int Message::getCreatedAt() {
+unsigned int Message::getCreatedAt() const {
     return m_createdAt;
 }
 
@@ -96,3 +96,26 @@ void Message::setCreatedAt(unsigned int createdAt) {
     m_createdAt = createdAt;
 }
 
+std::string Message::getText() const {
+    return m_text;
+}
+
+void Message::attach(const std::string& messageText) {
+    m_text = messageText;
+}
+
+void Message::attach(const GroupMe::Attachment& messageAttachment) {
+    m_attachments.push_back(messageAttachment);
+}
+
+const std::vector<GroupMe::Attachment>& Message::getAttachments() const {
+    return m_attachments;
+}
+
+std::shared_ptr<const GroupMe::User> Message::getSender() const {
+    return std::const_pointer_cast<const GroupMe::User>(m_sender);
+}
+
+void Message::setSender(const std::shared_ptr<GroupMe::User>& sender) {
+    m_sender = sender;
+}

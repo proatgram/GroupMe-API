@@ -37,6 +37,7 @@ build/*
 
 # Other
 *.kdev4 
+.cache/
 compile_commands.json
 
 # Doxygen
