@@ -17,7 +17,6 @@
 */
 
 #include "GroupMe_API.h"
-#include "base/Self.h"
 
 #include <fstream>
 
@@ -28,27 +27,15 @@ Main::Main(std::string token) :
 
 {
 
-    Self self(m_token);
+    UserSet set;
 
-    self.setNickname("TheTimBrick");
+    std::shared_ptr<User> user1(std::make_shared<User>(User("123123", "Nickname", "http::amogus.net/usr.png", "asdasd", "asd.com", "asdGHA")));
+    std::shared_ptr<User> user2(std::make_shared<User>(User("asdasd123123", "Nickname", "http::amogus.net/usr.png", "asdasd", "asd.com", "asdGHA")));
 
-    self.push().wait();
+    set.insert(user1);
+    set.insert(user2);
 
-    self.setNickname("UnsafeTheTimBrick");
-
-    /*
-    std::fstream file("/home/thetimbrick/message.txt", std::ios::in | std::ios::out | std::ios::binary);
-
-    std::vector<uint8_t> vec;
-
-    while(!file.eof()) {
-        vec.push_back(file.get());
-    }
-
-    File gfile(token, web::uri("http://info.cern.ch/hypertext/WWW/TheProject.html"), "***REMOVED***");
-
-    std::cout << gfile.upload().get() << std::endl;
-    */
+    std::cout << set.count(user2) << std::endl << set.size() << std::endl;
 }
 
 bool Main::changeAvatar(std::string path) {
