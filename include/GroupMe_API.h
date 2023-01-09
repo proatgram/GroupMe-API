@@ -26,6 +26,8 @@
 #include "base/Picture.h"
 #include "base/Video.h"
 #include "base/File.h"
+#include "base/Self.h"
+#include "base/UserSet.hpp"
 
 namespace GroupMe {
 

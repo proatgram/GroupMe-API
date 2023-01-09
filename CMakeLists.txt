@@ -41,7 +41,7 @@ target_link_libraries(GroupMe cpprestsdk::cpprest ${SSL_LINK_LIBRARIES} avformat
 
 add_executable(test "${CMAKE_SOURCE_DIR}/tests/main/src/main.cpp")
 
-target_include_directories(test PRIVATE "${CMAKE_SOURCE_DIR}/tests/main/include/" "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(test PRIVATE "${CMAKE_SOURCE_DIR}/tests/main/include/" "${CMAKE_SOURCE_DIR}/include" ${Boost_INCLUDE_DIRS})
 
 target_link_libraries(test cpprestsdk::cpprest "${CMAKE_CURRENT_BINARY_DIR}/libGroupMe.so" ${SSL_LINK_LIBRARIES} avformat)
 
