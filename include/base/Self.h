@@ -30,6 +30,7 @@
 #include <nlohmann/json.hpp>
 
 #include "base/User.h"
+#include "base/UserSet.hpp"
 
 namespace GroupMe {
     /**
@@ -206,6 +207,10 @@ namespace GroupMe {
              */
             void setTwitterConnected(bool twitterConnected);
 
+
+
+            const GroupMe::UserSet& getContacts();
+
         private:
             std::string m_accessToken;
 
@@ -214,6 +219,8 @@ namespace GroupMe {
             web::http::client::http_client m_client;
 
             pplx::task<void> m_task;
+
+            GroupMe::UserSet m_contacts;
 
             // Needed because we have variables that are read and writtent
             // to in another thread

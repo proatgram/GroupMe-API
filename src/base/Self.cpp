@@ -25,7 +25,8 @@ Self::Self(std::string accessToken) :
     m_accessToken(accessToken),
     m_request(),
     m_client("https://api.groupme.com/v3/users/me"),
-    m_task()
+    m_task(),
+    m_contacts()
 {
     m_task = pplx::task<void>([this]() -> void {
         m_request.set_method(web::http::methods::GET);
