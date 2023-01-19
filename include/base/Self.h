@@ -207,10 +207,6 @@ namespace GroupMe {
              */
             void setTwitterConnected(bool twitterConnected);
 
-
-
-            const GroupMe::UserSet& getContacts();
-
         private:
             std::string m_accessToken;
 

@@ -28,29 +28,29 @@
 namespace GroupMe {
     namespace {
         struct UserCompare {
+
+            using is_transparent = void;
+
             inline size_t operator()(const std::shared_ptr<User>& a, const std::shared_ptr<User>&b ) const {
-                return *(a.get()) == *(b.get());
+                return (a.get()->getID() < b.get()->getID());
             }
-        };
 
-        struct UserHash {
-            inline std::size_t operator()(const std::shared_ptr<User>& p) const {
-                std::size_t idHash = std::hash<std::string>()(p.get()->getID());
-                std::size_t nicknameHash = std::hash<std::string>()(p.get()->getNickname());
-                std::size_t phonenumberHash = std::hash<std::string>()(p.get()->getPhoneNumber());
-                std::size_t emailHash = std::hash<std::string>()(p.get()->getEmail());
-
-                std::size_t hash = 0;
-
-                boost::hash_combine(hash, idHash);
-                boost::hash_combine(hash, nicknameHash);
-                boost::hash_combine(hash, phonenumberHash);
-                boost::hash_combine(hash, emailHash);
-
-                return hash;
+            inline size_t operator()(const std::shared_ptr<User>& a, const std::string& id) const {
+                return (a.get()->getID() < id);
             }
+
+            inline size_t operator()(const std::string& id, const std::shared_ptr<User>& a) const {
+                return (a.get()->getID() < id);
+            }
+
         };
     }
 
-    typedef std::unordered_set<std::shared_ptr<User>, UserHash, UserCompare> UserSet;
+    /**
+    * @brief This type should be used to hold `GroupMe::User`'s
+    *
+    * Essentially this is just a std::set with some custom comparisons
+    *
+    */
+    typedef std::set<std::shared_ptr<User>, UserCompare, std::allocator<std::shared_ptr<User>>> UserSet;
 }

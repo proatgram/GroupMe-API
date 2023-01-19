@@ -34,8 +34,9 @@ Main::Main(std::string token) :
 
     set.insert(user1);
     set.insert(user2);
+    set.find(user2)->get()->setEmail("jahsgdjashgd");
+    std::cout << set.find("asdasd123123")->get()->getEmail() << std::endl;
 
-    std::cout << set.count(user2) << std::endl << set.size() << std::endl;
 }
 
 bool Main::changeAvatar(std::string path) {
