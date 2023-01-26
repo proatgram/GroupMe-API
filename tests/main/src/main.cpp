@@ -16,15 +16,23 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <cstdio>
+#include <iostream>
 #include <cstdlib>
 
-#include "GroupMe_API.h"
-#include "base/Authenticator.h"
+#include "UserSet.hpp"
+#include "User.h"
 
 int main(int argc, char** argv) {
 
-    GroupMe::Main test(argv[1]);
+    GroupMe::UserSet set;
+
+    std::shared_ptr<GroupMe::User> user1(std::make_shared<GroupMe::User>("123123", "Nickname", "http::amogus.net/usr.png", "asdasd", "asd.com", "asdGHA"));
+    std::shared_ptr<GroupMe::User> user2(std::make_shared<GroupMe::User>("asdasd123123", "Nickname", "http::amogus.net/usr.png", "asdasd", "asd.com", "asdGHA"));
+
+    set.insert(user1);
+    set.insert(user2);
+    set.find(user2)->get()->setEmail("jahsgdjashgd");
+    std::cout << set.find("asdasd123123")->get()->getEmail() << std::endl;
 
     return EXIT_SUCCESS;
 }

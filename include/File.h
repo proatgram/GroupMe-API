@@ -32,8 +32,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include "base/Attachment.h"
-#include "base/Exceptions.h"
+#include "Attachment.h"
+#include "util/Exceptions.h"
 
 namespace GroupMe {
     /**

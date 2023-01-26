@@ -36,10 +36,10 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
-#include "base/Attachment.h"
-#include "base/multipart_parser.h"
-#include "base/Exceptions.h"
-#include "base/AVFileMem.h"
+#include "Attachment.h"
+#include "util/multipart_parser.h"
+#include "util/Exceptions.h"
+#include "util/AVFileMem.h"
 
 namespace GroupMe {
     /**

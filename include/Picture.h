@@ -28,7 +28,7 @@
 #include <stdexcept>
 #include <nlohmann/json.hpp>
 
-#include "base/Attachment.h"
+#include "Attachment.h"
 
 namespace GroupMe {
     //TODO Add a constructor to upload as with a `std::vector<unsigned char>`

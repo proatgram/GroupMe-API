@@ -29,8 +29,8 @@
 #include <cpprest/uri.h>
 #include <nlohmann/json.hpp>
 
-#include "base/User.h"
-#include "base/UserSet.hpp"
+#include "User.h"
+#include "UserSet.hpp"
 
 namespace GroupMe {
     /**

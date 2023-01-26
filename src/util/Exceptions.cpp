@@ -16,41 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "util/Exceptions.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <string>
+using namespace GroupMe;
 
-#include "base/Authenticator.h"
-#include "base/Picture.h"
-#include "base/Video.h"
-#include "base/File.h"
-#include "base/Self.h"
-#include "base/UserSet.hpp"
-
-namespace GroupMe {
-
-    class Main {
-        public:
-
-            Main(std::string token);
-
-            void getGroups();
-
-            void getChats();
-
-            void createChat();
-
-            void createGroup(std::string groupName);
-
-            bool changeName(std::string name);
-
-            bool changeAvatar(std::string path);
-
-        private:
-        
-            std::string m_token;
-    };
-
+char* LargeFile::what() {
+    return (char*)"File too large.";
 }

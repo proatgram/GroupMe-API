@@ -20,10 +20,10 @@
 
 #include <string>
 #include <memory>
-#include <unordered_set>
+#include <set>
 #include <boost/functional/hash.hpp>
 
-#include "base/User.h"
+#include "User.h"
 
 namespace GroupMe {
     namespace {
