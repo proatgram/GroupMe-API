@@ -23,6 +23,7 @@
 #include <string>
 #include <algorithm>
 #include <mutex>
+#include <utility>
 
 #include <cpprest/http_client.h>
 #include <cpprest/http_headers.h>
@@ -206,6 +207,16 @@ namespace GroupMe {
              *
              */
             void setTwitterConnected(bool twitterConnected);
+
+            /**
+             * @brief Adds a contact to the contacts set
+             *
+             * @param contact The new contact to add as a `std::shared_ptr<GroupMe::User>`
+             *
+             * @return std::pair<GroupMe::UserSet::iterator, bool> This is the same return value as the single insertion for std::set
+             *
+             */
+            std::pair<GroupMe::UserSet::iterator, bool> addContact(std::shared_ptr<GroupMe::User> contact);
 
         private:
             std::string m_accessToken;
