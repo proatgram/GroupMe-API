@@ -16,7 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "base/Authenticator.h"
+#include "Authenticator.h"
 #include <cpprest/http_msg.h>
 #include <mutex>
 #include <condition_variable>

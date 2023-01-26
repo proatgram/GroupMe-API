@@ -16,7 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "base/Self.h"
+#include "Self.h"
 
 using namespace GroupMe;
 

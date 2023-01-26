@@ -21,8 +21,8 @@
 #include <string>
 #include <memory>
 
-#include "base/Attachment.h"
-#include "base/User.h"
+#include "Attachment.h"
+#include "User.h"
 
 namespace GroupMe {
     /**
