@@ -193,7 +193,7 @@ pplx::task<web::http::status_code> Self::pull() {
 /*
  * Overridden functions to prevent data race senarios
  * Functions must be const for User::operator== and User::operator!=
- * But also must be thread safe. It would be inifeceint to have this in
+ * But also must be thread safe. It would be inefficeint to have this in
  * the `User` class because this is the only time stuff is being accessed
  * in another thread
  */

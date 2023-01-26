@@ -21,36 +21,33 @@
 #include <string>
 #include <memory>
 #include <set>
-#include <boost/functional/hash.hpp>
 
 #include "User.h"
 
 namespace GroupMe {
-    namespace {
-        struct UserCompare {
+    struct UserCompare {
 
-            using is_transparent = void;
+        using is_transparent = void;
 
-            inline size_t operator()(const std::shared_ptr<User>& a, const std::shared_ptr<User>&b ) const {
-                return (a.get()->getID() < b.get()->getID());
-            }
+        inline size_t operator()(const std::shared_ptr<User>& a, const std::shared_ptr<User>&b ) const {
+            return (a.get()->getID() < b.get()->getID());
+        }
 
-            inline size_t operator()(const std::shared_ptr<User>& a, const std::string& id) const {
-                return (a.get()->getID() < id);
-            }
+        inline size_t operator()(const std::shared_ptr<User>& a, const std::string& id) const {
+            return (a.get()->getID() < id);
+        }
 
-            inline size_t operator()(const std::string& id, const std::shared_ptr<User>& a) const {
-                return (a.get()->getID() < id);
-            }
+        inline size_t operator()(const std::string& id, const std::shared_ptr<User>& a) const {
+            return (a.get()->getID() < id);
+        }
 
-        };
-    }
+    };
 
     /**
-    * @brief This type should be used to hold `GroupMe::User`'s
-    *
-    * Essentially this is just a std::set with some custom comparisons
-    *
-    */
+     * @brief This type should be used to hold `GroupMe::User`'s
+     *
+     * Essentially this is just a std::set with some custom comparisons
+     *
+     */
     typedef std::set<std::shared_ptr<User>, UserCompare, std::allocator<std::shared_ptr<User>>> UserSet;
 }
