@@ -229,7 +229,7 @@ namespace GroupMe {
 
             GroupMe::UserSet m_contacts;
 
-            // Needed because we have variables that are read and writtent
+            // Needed because we have variables that are read and written
             // to in another thread
             mutable std::mutex m_mutex;
     };
