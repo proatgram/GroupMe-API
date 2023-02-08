@@ -51,7 +51,7 @@ namespace GroupMe {
              * @param accessToken The users access token
              *
              */
-            Self(std::string accessToken);
+            Self(const std::string& accessToken);
 
             /**
              * This just waits for the concurrnet tasks to be finished to prevent undefined
@@ -209,15 +209,34 @@ namespace GroupMe {
             void setTwitterConnected(bool twitterConnected);
 
             /**
-             * @brief Adds a contact to the contacts set
+             * @brief Adds a contact to the contacts contacts set
              *
              * @param contact The new contact to add as a `std::shared_ptr<GroupMe::User>`
              *
              * @return std::pair<GroupMe::UserSet::iterator, bool> This is the same return value as the single insertion for std::set
              *
              */
-            std::pair<GroupMe::UserSet::iterator, bool> addContact(std::shared_ptr<GroupMe::User> contact);
+            std::pair<GroupMe::UserSet::const_iterator, bool> addContact(std::shared_ptr<GroupMe::User> contact);
 
+            /**
+             * @brief Finds a contact from the contacts set
+             * 
+             * @param userID The ID of the user to search for
+             *
+             * @return A const_iterator to the contact if found, or past-the-end iterator is returned
+             *
+             */
+            const GroupMe::UserSet::const_iterator findContact(const std::string& userID) const;
+
+            /**
+             * @brief Merges the two UserSets
+             *
+             * @param set The UserSet to merge
+             *
+             * @return void
+             *
+             */
+            void mergeContacts(UserSet& set);
         private:
             std::string m_accessToken;
 
