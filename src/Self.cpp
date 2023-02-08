@@ -20,7 +20,7 @@
 
 using namespace GroupMe;
 
-Self::Self(std::string accessToken) :
+Self::Self(const std::string& accessToken) :
     User(),
     m_accessToken(accessToken),
     m_request(),
@@ -279,4 +279,17 @@ void Self::setTwitterConnected(bool twitterConnected) {
     //TODO There should be stuff here to add Twitter to the users account
     std::lock_guard<std::mutex> lock(m_mutex);
     m_isTwitterConnected = twitterConnected;
+}
+
+std::pair<GroupMe::UserSet::const_iterator, bool> Self::addContact(std::shared_ptr<GroupMe::User> contact) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_contacts.insert(contact);
+}
+
+const GroupMe::UserSet::const_iterator Self::findContact(const std::string& userID) const {
+    return m_contacts.find(userID);
+}
+
+void Self::mergeContacts(GroupMe::UserSet& set) {
+    m_contacts.merge(set);
 }
