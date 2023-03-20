@@ -22,11 +22,8 @@ using namespace GroupMe;
 
 Picture::Picture(const std::string& accessToken, const std::filesystem::path& path) :
     Attachment(path, Attachment::Types::Picture, accessToken),
-    m_request(),
     m_client("https://image.groupme.com/pictures"),
-    m_json(),
-    m_file(path),
-    m_task()
+    m_file(path)
 {
     m_task = pplx::task<void>([this]() -> void {
         m_request.set_method(web::http::methods::POST);
@@ -44,16 +41,12 @@ Picture::Picture(const std::string& accessToken, const std::filesystem::path& pa
 
 Picture::Picture(const std::string& accessToken, const web::uri& contentURL) :
     Attachment(contentURL, Attachment::Types::Picture, accessToken),
-    m_request(),
-    m_client(m_content),
-    m_json(),
-    m_file(),
-    m_task()
+    m_client(m_content)
 {
     m_task = pplx::task<void>([this]() -> void {
         m_request.set_method(web::http::methods::GET);
 
-        m_client.request(m_request).then([this](web::http::http_response response) {
+        m_client.request(m_request).then([this](const web::http::http_response& response) {
             std::stringstream strm;
 
             strm << response.extract_string(true).get();
@@ -70,8 +63,29 @@ Picture::Picture(const std::string& accessToken, const web::uri& contentURL) :
     });
 }
 
+Picture::Picture(const Picture& other) :
+    Attachment(other),
+    m_request(other.m_request),
+    m_client(other.m_client),
+    m_json(other.m_json),
+    m_task(other.m_task)
+{
+
+}
+
 Picture::~Picture() {
     m_task.wait();
+}
+
+Picture& Picture::operator=(const Picture& other) {
+    if(this != &other) {
+        Attachment::operator=(other);
+        m_request = other.m_request;
+        m_client = other.m_client;
+        m_json = other.m_json;
+        m_task = other.m_task;
+    }
+    return *this;
 }
 
 pplx::task<std::string> Picture::upload() {
@@ -79,9 +93,8 @@ pplx::task<std::string> Picture::upload() {
 
     return pplx::task<std::string>([this]() -> std::string {
         m_request.set_body(m_contentBinary);
-        m_client.request(m_request).then([this](web::http::http_response response) -> void {
-                if (response.status_code() != 200) {
-
+        m_client.request(m_request).then([this](const web::http::http_response& response) -> void {
+                if (response.status_code() != web::http::status_codes::OK) {
                     return;
                 }
 

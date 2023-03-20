@@ -68,7 +68,15 @@ namespace GroupMe {
              */
             Picture(const std::string& accessToken, const web::uri& contentURL);
 
+            Picture(const Picture& other);
+
+            Picture(Picture&& other) = delete;
+
             ~Picture();
+
+            Picture& operator=(const Picture& other);
+
+            Picture& operator=(Picture&& other) = delete;
 
             /**
              * This member function will upload the picture to the GroupMe

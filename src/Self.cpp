@@ -21,22 +21,17 @@
 using namespace GroupMe;
 
 Self::Self(const std::string& accessToken) :
-    User(),
     m_accessToken(accessToken),
-    m_request(),
-    m_client("https://api.groupme.com/v3/users/me"),
-    m_task(),
-    m_contacts()
+    m_client("https://api.groupme.com/v3/users/me")
 {
     m_task = pplx::task<void>([this]() -> void {
         m_request.set_method(web::http::methods::GET);
 
-        //
         m_request.headers().add("X-Access-Token", m_accessToken);
 
-        m_client.request(m_request).then([this](web::http::http_response response) {
+        m_client.request(m_request).then([this](const web::http::http_response& response) {
             if (response.status_code() != web::http::status_codes::OK) {
-                return;
+                throw web::http::http_exception(response.status_code());
             }
 
             auto json = nlohmann::json::parse(response.extract_string(true).get());
@@ -112,9 +107,9 @@ pplx::task<web::http::status_code> Self::push() {
         // API endpoint
         m_client = web::http::client::http_client("https://api.groupme.com/v3/users/update");
 
-        web::http::status_code statusCode;
+        web::http::status_code statusCode = 0;
 
-        m_client.request(m_request).then([&statusCode](web::http::http_response response) {
+        m_client.request(m_request).then([&statusCode](const web::http::http_response& response) {
             statusCode = response.status_code();
             return;
         }).wait();
@@ -134,12 +129,12 @@ pplx::task<web::http::status_code> Self::pull() {
         // old data in it.
         m_request.set_body("");
 
-        web::http::status_code statusCode;
+        web::http::status_code statusCode = 0;
 
         // Again, the API endpoint
         m_client = web::http::client::http_client("https://api.groupme.com/v3/users/me");
 
-        m_client.request(m_request).then([&statusCode, this](web::http::http_response response) {
+        m_client.request(m_request).then([&statusCode, this](const web::http::http_response& response) {
 
             statusCode = response.status_code();
 
@@ -190,6 +185,7 @@ pplx::task<web::http::status_code> Self::pull() {
         return statusCode;
     });
 }
+
 /*
  * Overridden functions to prevent data race senarios
  * Functions must be const for User::operator== and User::operator!=
@@ -281,12 +277,11 @@ void Self::setTwitterConnected(bool twitterConnected) {
     m_isTwitterConnected = twitterConnected;
 }
 
-std::pair<GroupMe::UserSet::const_iterator, bool> Self::addContact(std::shared_ptr<GroupMe::User> contact) {
-    std::lock_guard<std::mutex> lock(m_mutex);
+std::pair<GroupMe::UserSet::const_iterator, bool> Self::addContact(const std::shared_ptr<GroupMe::User>& contact) {
     return m_contacts.insert(contact);
 }
 
-const GroupMe::UserSet::const_iterator Self::findContact(const std::string& userID) const {
+GroupMe::UserSet::const_iterator Self::findContact(const std::string& userID) const {
     return m_contacts.find(userID);
 }
 
