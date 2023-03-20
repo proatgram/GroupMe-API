@@ -32,84 +32,90 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
-namespace GroupMe {
+namespace GroupMe::Util {
 
-    namespace Util {
+    /**
+     * This class is a utility class to open video information using
+     * libavformat from in memory instead of a file.
+     *
+     * @brief A utility class to open information for a video
+     *
+     */
+    class InMemoryAVFormat {
+        public:
 
-        /**
-         * This class is a utility class to open video information using
-         * libavformat from in memory instead of a file.
-         *
-         * @brief A utility class to open information for a video
-         *
-         */
-        class InMemoryAVFormat {
-            public:
+            /**
+             * @brief Constructs a new `GroupMe::Util::InMemoryAVFormat` object
+             *
+             * @param data A vector of data
+             *
+             * @param options Options for the AVFormat
+             *
+             */
+            explicit InMemoryAVFormat(const std::vector<uint8_t>& data, AVDictionary **options = nullptr);
 
-                /**
-                 * @brief Constructs a new `GroupMe::Util::InMemoryAVFormat` object
-                 *
-                 */
-                InMemoryAVFormat();
+            InMemoryAVFormat();
 
-                /**
-                 * @brief Opens a video from a vector
-                 *
-                 * @param data A vector of data
-                 *
-                 * @param options Options for the AVFormat
-                 *
-                 * @returns int
-                 *
-                 */
-                int openMemory(const std::vector<uint8_t>& data, AVDictionary** options = nullptr);
+            /**
+             * @brief Opens a video from a vector
+             *
+             * @param data A vector of data
+             *
+             * @param options Options for the AVFormat
+             *
+             * @returns int
+             *
+             */
+            int openMemory(const std::vector<uint8_t>& data, AVDictionary** options = nullptr);
 
-                /**
-                 * @brief Opens a video from a vector
-                 *
-                 * @param data A vector of data
-                 *
-                 * @param options Options for the AVFormat
-                 *
-                 * @returns int
-                 *
-                 */
-                int openMemory(std::vector<uint8_t>&& data, AVDictionary** options = nullptr);
+            /**
+             * @brief Opens a video from a vector
+             *
+             * @param data A vector of data
+             *
+             * @param options Options for the AVFormat
+             *
+             * @returns int
+             *
+             */
+            int openMemory(std::vector<uint8_t>&& data, AVDictionary** options = nullptr);
 
-                /**
-                 * @brief Closes the in memory context
-                 *
-                 */
-                void closeMemory();
+            /**
+             * @brief Closes the in memory context
+             *
+             */
+            void closeMemory();
 
-                /**
-                 * @brief Closes the in memory context
-                 *
-                 */
-                static void closeMemory(std::shared_ptr<AVFormatContext> context);
+            /**
+             * @brief Closes the in memory context
+             *
+             */
+            static void closeMemory(std::shared_ptr<AVFormatContext> context);
 
-                /**
-                 * @brief Gets the AVFormatContext. **THIS SHOULD NOT BE COPIED**
-                 *
-                 * @return std::shared_ptr<AVFormatContext>
-                 *
-                 */
-                std::shared_ptr<AVFormatContext> get();
+            /**
+             * @brief Gets the AVFormatContext. **THIS SHOULD NOT BE COPIED**
+             *
+             * @return std::shared_ptr<AVFormatContext>
+             *
+             */
+            std::shared_ptr<AVFormatContext> get();
 
-            private:
+        private:
+            struct Opaque{
+                using Vector = std::vector<uint8_t>;
+                Vector data;
+                Vector::iterator iterator;
+            };
 
-                struct Opaque{
-                    using Vector = std::vector<uint8_t>;
-                    Vector data;
-                    Vector::iterator iterator;
-                };
+            static int read(void* opaque, uint8_t* buf, int size);
 
-                static int read(void* opaque, uint8_t* buf, int size);
+            std::shared_ptr<AVFormatContext> m_context;
 
-                std::shared_ptr<AVFormatContext> m_context;
+            AVFormatContext *_m_context;
 
-        };
+            Opaque *m_opaque;
 
-    }
+            AVIOContext *m_avioContext;
+    };
 
 }

@@ -46,20 +46,29 @@ namespace GroupMe {
         public:
 
             /**
-             * @brief Construst a new `GroupMe::Self` object
+             * @brief Constructs a new `GroupMe::Self` object
              *
              * @param accessToken The users access token
              *
              */
-            Self(const std::string& accessToken);
+            explicit Self(const std::string& accessToken);
+
+            Self(const Self& other) = delete;
+
+            Self(Self&& other) = delete;
 
             /**
-             * This just waits for the concurrnet tasks to be finished to prevent undefined
-             * behavior
+             * Makes sure to wait for all of the concurrent tasks to finish
+             * before moving on.
+             *
              * @brief The destructor
              *
              */
             ~Self();
+
+            Self& operator=(const Self&) = delete;
+
+            Self& operator=(Self&&) = delete;
 
             /**
              * @brief Pushes all of the user data to the server
@@ -216,7 +225,7 @@ namespace GroupMe {
              * @return std::pair<GroupMe::UserSet::iterator, bool> This is the same return value as the single insertion for std::set
              *
              */
-            std::pair<GroupMe::UserSet::const_iterator, bool> addContact(std::shared_ptr<GroupMe::User> contact);
+            std::pair<GroupMe::UserSet::const_iterator, bool> addContact(const std::shared_ptr<GroupMe::User>& contact);
 
             /**
              * @brief Finds a contact from the contacts set
@@ -226,7 +235,7 @@ namespace GroupMe {
              * @return A const_iterator to the contact if found, or past-the-end iterator is returned
              *
              */
-            const GroupMe::UserSet::const_iterator findContact(const std::string& userID) const;
+            GroupMe::UserSet::const_iterator findContact(const std::string& userID) const;
 
             /**
              * @brief Merges the two UserSets

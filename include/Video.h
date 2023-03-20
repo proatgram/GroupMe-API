@@ -25,7 +25,6 @@
 #include <vector>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include <string>
 #include <sstream>
 #include <algorithm>
 #include <thread>
@@ -93,7 +92,15 @@ namespace GroupMe {
              */
             Video(const std::string& accessToken, const web::uri& contentURL, const std::string& conversationID);
 
+            Video(const Video& other);
+
+            Video(Video&& other) = delete;
+
             ~Video();
+
+            Video& operator=(const Video& other);
+
+            Video& operator=(Video&& other) = delete;
 
             /**
              * This member function will upload the video to the GroupMe
@@ -125,5 +132,4 @@ namespace GroupMe {
 
             nlohmann::json m_json;
     };
-
 }

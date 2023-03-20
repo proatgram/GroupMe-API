@@ -17,22 +17,19 @@
 */
 
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 
-#include "UserSet.hpp"
-#include "User.h"
+
+#include "util/AVFileMem.h"
 
 int main(int argc, char** argv) {
+    
+    std::fstream file("/home/thetimbrick/Videos/'2023-01-16 19-47-03.mp4'", std::fstream::in | std::fstream::binary);
 
-    GroupMe::UserSet set;
+    std::vector<uint8_t> vec((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-    std::shared_ptr<GroupMe::User> user1(std::make_shared<GroupMe::User>("123123", "Nickname", "http::amogus.net/usr.png", "asdasd", "asd.com", "asdGHA"));
-    std::shared_ptr<GroupMe::User> user2(std::make_shared<GroupMe::User>("asdasd123123", "Nickname", "http::amogus.net/usr.png", "asdasd", "asd.com", "asdGHA"));
-
-    set.insert(user1);
-    set.insert(user2);
-    set.find(user2)->get()->setEmail("jahsgdjashgd");
-    std::cout << set.find("asdasd123123")->get()->getEmail() << std::endl;
+    GroupMe::Util::InMemoryAVFormat mem(vec);
 
     return EXIT_SUCCESS;
 }

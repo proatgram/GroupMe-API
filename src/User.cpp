@@ -27,10 +27,6 @@ User::User(const std::string& userID, const std::string& userNickname, const std
     m_userPhoneNumber(userPhoneNumber),
     m_userEmail(userEmail),
     m_userGUID(userGUID),
-    m_locale(),
-    m_zipcode(),
-    m_shareURL(),
-    m_shareQRCodeURL(),
     m_createdAt(),
     m_updatedAt(),
     m_isSMS(false),
@@ -41,15 +37,6 @@ User::User(const std::string& userID, const std::string& userNickname, const std
 }
 
 User::User() :
-    m_userID(),
-    m_userNickname(),
-    m_userProfileImageURL(),
-    m_userPhoneNumber(),
-    m_userEmail(),
-    m_locale(),
-    m_zipcode(),
-    m_shareURL(),
-    m_shareQRCodeURL(),
     m_createdAt(),
     m_updatedAt(),
     m_isSMS(false),
@@ -198,9 +185,7 @@ bool User::operator==(const User& user) const {
     else if (this->getNickname() != user.getNickname()) {
         return false;
     }
-    else {
-        return true;
-    }
+    return true;
 }
 
 bool User::operator!=(const User& user) const {

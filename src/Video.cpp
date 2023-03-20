@@ -22,21 +22,18 @@ using namespace GroupMe;
 
 Video::Video(const std::string& accessToken, const std::filesystem::path& path, const std::string& conversationID) :
     Attachment(path, Attachment::Types::Video, accessToken),
-    m_request(),
     m_client("https://video.groupme.com/transcode"),
-    m_parser(),
-    m_conversationID(conversationID),
-    m_task(),
-    m_json()
+    m_conversationID(conversationID)
 {
     m_task = pplx::task<void>([this]() {
         // avformat is used to grab the duration of
         // the video to make sure we don't upload a
         // video that is too long. Max is 1 minute
         AVFormatContext* context = avformat_alloc_context();//m_avContext.get();
-        avformat_open_input(&context, m_contentPath.c_str(), NULL, NULL);
+        avformat_open_input(&context, m_contentPath.c_str(), nullptr, nullptr);
 
         if (context->duration / static_cast<double>(AV_TIME_BASE) > 60.0) {
+            avformat_close_input(&context);
             throw LargeFile();
         }
 
@@ -54,12 +51,8 @@ Video::Video(const std::string& accessToken, const std::filesystem::path& path, 
 
 Video::Video(const std::string& accessToken, const std::vector<unsigned char>& contentVector, const std::string& conversationID) :
     Attachment(contentVector, Attachment::Types::Video, accessToken),
-    m_request(),
     m_client("https://video.groupme.com/transcode"),
-    m_parser(),
-    m_conversationID(conversationID),
-    m_task(),
-    m_json()
+    m_conversationID(conversationID)
 {
     m_task = pplx::task<void>([this, contentVector]() {
         Util::InMemoryAVFormat format;
@@ -82,12 +75,8 @@ Video::Video(const std::string& accessToken, const std::vector<unsigned char>& c
 
 Video::Video(const std::string& accessToken, const web::uri& contentURL,const  std::string& conversationID) :
     Attachment(contentURL, Attachment::Types::Video, accessToken),
-    m_request(),
     m_client(m_content),
-    m_parser(),
-    m_conversationID(conversationID),
-    m_task(),
-    m_json()
+    m_conversationID(conversationID)
 {
     m_content = contentURL.to_string();
 
@@ -95,7 +84,7 @@ Video::Video(const std::string& accessToken, const web::uri& contentURL,const  s
 
         m_request.set_method(web::http::methods::GET);
         pplx::task<web::http::http_response> task = m_client.request(m_request);
-        task.then([this](web::http::http_response response) {
+        task.then([this](const web::http::http_response& response) {
 
             std::stringstream strm;
 
@@ -144,7 +133,7 @@ pplx::task<std::string> Video::upload() {
         // a status url for an upload so we keep checking that
         // until the url says that it is finished.
         while (!done) {
-            m_client.request(m_request).then([&done, this](web::http::http_response response) {
+            m_client.request(m_request).then([&done, this](const web::http::http_response& response) {
                 if (response.status_code() == web::http::status_codes::Created) {
 
                     std::string content;
