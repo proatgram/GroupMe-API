@@ -37,8 +37,7 @@ https://github.com/AndsonYe/MultipartEncoder
 #include <filesystem>
 #include <iostream>
 
-namespace web{
-namespace http{
+namespace web::http{
 
 //TODO Figure out what in the heck is happening in this class
 
@@ -54,33 +53,33 @@ public:
   {
     return boundary_;
   }
-  inline void AddParameter(const std::string &name, const std::string &value)
-  {
-    params_.push_back(std::move(std::pair<std::string, std::string>(name, value)));
-  }
-  inline void AddFile(const std::filesystem::path &file)
-  {
-    files_.push_back(std::move(std::pair<std::filesystem::path, std::string>(file, file.filename())));
-  }
-  inline void AddFile(const std::vector<uint8_t>& data, const std::string name) {
-    files_raw_.push_back(std::move(std::pair<std::vector<uint8_t>, std::string>(std::move(data), name)));
-  }
-  inline void AddFile(const std::string& data, const std::string name) {
-    files_raw_.push_back(std::move(std::pair<std::vector<uint8_t>, std::string>(std::move(std::vector<uint8_t>(data.begin(), data.end())), name)));
-  }
+  void AddParameter(const std::string& name, const std::string& value);
+  
+  void AddFile(const std::filesystem::path& file);
+
+  void AddFile(const std::vector<uint8_t>& data, const std::string& name);
+
+  void AddFile(const std::string& data, const std::string& name);
+  
   const std::string &GenBodyContent();
 
 private:
   void _get_file_name_type(const std::string &file_path, std::string *filenae, std::string *content_type);
-private:
+
   static const std::string boundary_prefix_;
+
   static const std::string rand_chars_;
+
   std::string boundary_;
+
   std::string body_content_;
+
   std::vector<std::pair<std::string, std::string> > params_;
+
   std::vector<std::pair<std::filesystem::path, std::string> > files_;
+
   std::vector<std::pair<std::vector<uint8_t> , std::string>> files_raw_;
+
 };
 
-} //namespace web::http
 } //namespace web

@@ -26,10 +26,12 @@
 #include <algorithm>
 #include <memory>
 #include <iostream>
+#include <filesystem>
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
+#include <libavutil/log.h>
 }
 
 namespace GroupMe::Util {
@@ -41,21 +43,34 @@ namespace GroupMe::Util {
      * @brief A utility class to open information for a video
      *
      */
-    class InMemoryAVFormat {
+    class AVFormat {
         public:
 
             /**
-             * @brief Constructs a new `GroupMe::Util::InMemoryAVFormat` object
+             * @brief Constructs a new `GroupMe::Util::AVFormat` object
              *
              * @param data A vector of data
              *
              * @param options Options for the AVFormat
              *
              */
-            explicit InMemoryAVFormat(const std::vector<uint8_t>& data, AVDictionary **options = nullptr);
+            explicit AVFormat(const std::vector<uint8_t>& data, AVDictionary **options = nullptr);
 
-            InMemoryAVFormat();
+            AVFormat();
 
+            ~AVFormat();
+
+            AVFormat(const AVFormat& other);
+
+            AVFormat(AVFormat&& other) noexcept;
+
+            explicit AVFormat(const std::filesystem::path& path, AVDictionary **options = nullptr);
+
+            AVFormat& operator=(const AVFormat& other);
+
+            AVFormat& operator=(AVFormat&& other) noexcept;
+
+            const AVFormatContext* operator->();
             /**
              * @brief Opens a video from a vector
              *
@@ -86,19 +101,15 @@ namespace GroupMe::Util {
              */
             void closeMemory();
 
-            /**
-             * @brief Closes the in memory context
-             *
-             */
-            static void closeMemory(std::shared_ptr<AVFormatContext> context);
-
-            /**
+           /**
              * @brief Gets the AVFormatContext. **THIS SHOULD NOT BE COPIED**
              *
              * @return std::shared_ptr<AVFormatContext>
              *
              */
-            std::shared_ptr<AVFormatContext> get();
+            const AVFormatContext* get();
+
+            static constexpr unsigned short int AVIO_BUFF_SIZE = 4096;
 
         private:
             struct Opaque{
@@ -109,9 +120,7 @@ namespace GroupMe::Util {
 
             static int read(void* opaque, uint8_t* buf, int size);
 
-            std::shared_ptr<AVFormatContext> m_context;
-
-            AVFormatContext *_m_context;
+            AVFormatContext *m_avFormatContext;
 
             Opaque *m_opaque;
 

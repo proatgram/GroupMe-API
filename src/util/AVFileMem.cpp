@@ -16,36 +16,57 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <cassert>
 #include <util/AVFileMem.h>
 
 using namespace GroupMe::Util;
 
-InMemoryAVFormat::InMemoryAVFormat() :
-    m_context(avformat_alloc_context())
+AVFormat::AVFormat(const std::vector<uint8_t>& data, AVDictionary **options) :
+    m_avFormatContext(avformat_alloc_context()),
+    m_opaque(new Opaque),
+    m_avioContext(avio_alloc_context(static_cast<uint8_t*>(av_malloc(AVFormat::AVIO_BUFF_SIZE)), AVFormat::AVIO_BUFF_SIZE, 0, static_cast<void*>(m_opaque), &AVFormat::read, nullptr, nullptr))
 {
+    m_opaque->data = Opaque::Vector(data);
+    m_opaque->iterator = m_opaque->data.begin();
 
+    m_avFormatContext->pb = m_avioContext;
+
+    avformat_open_input(&m_avFormatContext, "video.dat", nullptr, options);
+    avformat_find_stream_info(m_avFormatContext, nullptr);
 }
 
-InMemoryAVFormat::InMemoryAVFormat(const std::vector<uint8_t>& data, AVDictionary **options) {
-    constexpr unsigned short int AVIO_BUFF_SIZE  = 4096;
-    Opaque* opaque = new Opaque;
-
-    opaque->data = Opaque::Vector(data);
-    opaque->iterator = opaque->data.begin();
-
-    AVFormatContext *context = avformat_alloc_context();
-
-    context->pb = avio_alloc_context(static_cast<uint8_t*>(av_malloc(AVIO_BUFF_SIZE)), AVIO_BUFF_SIZE, 0, static_cast<void*>(opaque), &InMemoryAVFormat::read, nullptr, nullptr);
-
-    m_context = std::shared_ptr<AVFormatContext>(context, [](AVFormatContext *context) {
-        avio_context_free(&context->pb);
-        avformat_free_context(context);
-    });
+AVFormat::AVFormat(const std::filesystem::path& path, AVDictionary **options) :
+    m_avFormatContext(nullptr),
+    m_opaque(nullptr),
+    m_avioContext(nullptr)
+{
+    avformat_open_input(&m_avFormatContext, path.c_str(), nullptr, options);
+    avformat_find_stream_info(m_avFormatContext, nullptr);
 }
 
-int InMemoryAVFormat::read(void* opaque, uint8_t* buf, int size) {
+AVFormat::~AVFormat() {
+    // Clears the data in the Opaque struct
+    if(m_opaque != nullptr && m_avioContext != nullptr) {
+        m_opaque->data.clear();
+        m_opaque->iterator = m_opaque->data.begin();
+        delete m_opaque;
+        m_opaque = nullptr;
+        m_avFormatContext->pb = nullptr;
+        av_free(m_avioContext->buffer);
+        avio_context_free(&m_avioContext);
+    }
+    avformat_free_context(m_avFormatContext);
+}
+
+const AVFormatContext* AVFormat::operator->() {
+    return m_avFormatContext;
+}
+
+int AVFormat::read(void* opaque, uint8_t* buf, int size) {
+    assert(opaque);
+    assert(buf);
+
     Opaque* octx = static_cast<Opaque*>(opaque);
-
     if (octx->iterator == octx->data.end()) {
         return 0;
     }
@@ -59,63 +80,57 @@ int InMemoryAVFormat::read(void* opaque, uint8_t* buf, int size) {
     return dataCount;
 }
 
-int InMemoryAVFormat::openMemory(const std::vector<uint8_t>& data, AVDictionary** options) {
-    const size_t avioBufferSize = 4096;
-    uint8_t* avioBuffer = static_cast<uint8_t*>(av_malloc(avioBufferSize));
+int AVFormat::openMemory(const std::vector<uint8_t>& data, AVDictionary **options) {
+    if (m_avFormatContext != nullptr) {
+        this->closeMemory();
+    }
+    m_opaque = new Opaque;
 
-    Opaque* opaque = new Opaque;
+    m_opaque->data = Opaque::Vector(data);
+    m_opaque->iterator = m_opaque->data.begin();
 
-    opaque->data = Opaque::Vector(data);
-    opaque->iterator = opaque->data.begin();
+    m_avioContext = avio_alloc_context(static_cast<uint8_t*>(av_malloc(AVFormat::AVIO_BUFF_SIZE)), AVFormat::AVIO_BUFF_SIZE, 0, static_cast<void*>(m_opaque), &AVFormat::read, nullptr, nullptr);
 
-    AVIOContext* avioContext = avio_alloc_context(avioBuffer, avioBufferSize, 0, static_cast<void*>(opaque), &InMemoryAVFormat::read, nullptr, nullptr);
+    m_avFormatContext = avformat_alloc_context();
 
-    m_context->pb = avioContext;
+    m_avFormatContext->pb = m_avioContext;
 
-    AVFormatContext* con = m_context.get();
-
-    return avformat_open_input(&con, "mem", nullptr, options);
+    return avformat_open_input(&m_avFormatContext, "video.dat", nullptr, options);
 }
 
-// TODO: Make passed in vector parameter a hollow object.
-int InMemoryAVFormat::openMemory(std::vector<uint8_t>&& data, AVDictionary **options) {
-    std::cerr << "Function not safe to use. Function not finished." << std::endl;
+int AVFormat::openMemory(std::vector<uint8_t>&& data, AVDictionary **options) {
+    if (m_avFormatContext != nullptr) {
+        this->closeMemory();
+    }
+    m_opaque = new Opaque;
 
-    const size_t avioBufferSize = 4096;
-    uint8_t* avioBuffer = static_cast<uint8_t*>(av_malloc(avioBufferSize));
+    m_opaque->data = std::move(data);
+    m_opaque->iterator = m_opaque->data.begin();
 
-    Opaque* opaque = new Opaque;
+    m_avioContext = avio_alloc_context(static_cast<uint8_t*>(av_malloc(AVFormat::AVIO_BUFF_SIZE)), AVFormat::AVIO_BUFF_SIZE, 0, static_cast<void*>(m_opaque), &AVFormat::read, nullptr, nullptr);
 
-    opaque->data = data;
-    opaque->iterator = opaque->data.begin();
+    m_avFormatContext = avformat_alloc_context();
 
-    AVIOContext* avioContext = avio_alloc_context(avioBuffer, avioBufferSize, 0, static_cast<void*>(opaque), &InMemoryAVFormat::read, nullptr, nullptr);
+    m_avFormatContext->pb = m_avioContext;
 
-    m_context->pb = avioContext;
-
-    AVFormatContext* con = m_context.get();
-
-    return avformat_open_input(&con, "mem", nullptr, options);
+    return avformat_open_input(&m_avFormatContext, "video.dat", nullptr, options);
 }
 
-void InMemoryAVFormat::closeMemory() {
-    static_cast<Opaque*>(m_context->pb->opaque)->data.clear();
-    static_cast<Opaque*>(m_context->pb->opaque)->iterator = static_cast<Opaque*>(m_context->pb->opaque)->data.begin();
-    delete static_cast<Opaque*>(m_context->pb->opaque);
-    m_context->pb->opaque = nullptr;
-    avio_close(m_context->pb);
-    m_context.reset();
+void AVFormat::closeMemory() {
+    // Clears the data in the Opaque struct
+    m_opaque->data.clear();
+    m_opaque->iterator = m_opaque->data.begin();
+    
+    delete m_opaque;
+    m_opaque = nullptr;
+
+    m_avFormatContext->pb = nullptr;
+
+    avformat_free_context(m_avFormatContext);
+    av_free(m_avioContext->buffer);
+    avio_context_free(&m_avioContext);
 }
 
-void InMemoryAVFormat::closeMemory(std::shared_ptr<AVFormatContext> context) {
-    static_cast<Opaque*>(context->pb->opaque)->data.clear();
-    static_cast<Opaque*>(context->pb->opaque)->iterator = static_cast<Opaque*>(context->pb->opaque)->data.begin();
-    delete static_cast<Opaque*>(context->pb->opaque);
-    context->pb->opaque = nullptr;
-    avio_close(context->pb);
-    context.reset();
-}
-
-std::shared_ptr<AVFormatContext> InMemoryAVFormat::get() {
-    return m_context;
+const AVFormatContext* AVFormat::get() {
+    return m_avFormatContext;
 }

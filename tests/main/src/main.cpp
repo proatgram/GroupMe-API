@@ -25,11 +25,13 @@
 
 int main(int argc, char** argv) {
     
-    std::fstream file("/home/thetimbrick/Videos/'2023-01-16 19-47-03.mp4'", std::fstream::in | std::fstream::binary);
+    std::fstream file("/home/thetimbrick/Videos/vid.mp4", std::fstream::in | std::fstream::binary);
 
     std::vector<uint8_t> vec((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-    GroupMe::Util::InMemoryAVFormat mem(vec);
+    GroupMe::Util::AVFormat mem(vec);
+
+    std::cout << (mem->duration / AV_TIME_BASE) << std::endl;
 
     return EXIT_SUCCESS;
 }
