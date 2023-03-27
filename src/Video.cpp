@@ -25,19 +25,15 @@ Video::Video(const std::string& accessToken, const std::filesystem::path& path, 
     m_client("https://video.groupme.com/transcode"),
     m_conversationID(conversationID)
 {
-    m_task = pplx::task<void>([this]() {
+    m_task = pplx::task<void>([&, this]() {
         // avformat is used to grab the duration of
         // the video to make sure we don't upload a
         // video that is too long. Max is 1 minute
-        AVFormatContext* context = avformat_alloc_context();//m_avContext.get();
-        avformat_open_input(&context, m_contentPath.c_str(), nullptr, nullptr);
+        Util::AVFormat context(path);
 
-        if (context->duration / static_cast<double>(AV_TIME_BASE) > 60.0) {
-            avformat_close_input(&context);
+        if (static_cast<double>(context->duration / AV_TIME_BASE) > 60.0) {
             throw LargeFile();
         }
-
-        avformat_close_input(&context);
 
         m_request.set_method(web::http::methods::POST);
         m_request.headers().add("X-Access-Token", m_accessToken);
@@ -55,14 +51,11 @@ Video::Video(const std::string& accessToken, const std::vector<unsigned char>& c
     m_conversationID(conversationID)
 {
     m_task = pplx::task<void>([this, contentVector]() {
-        Util::InMemoryAVFormat format;
-        format.openMemory(contentVector);
+        Util::AVFormat format(contentVector);
 
-        if (format.get()->duration / static_cast<double>(AV_TIME_BASE) > 60.0) {
+        if (static_cast<double>(format.get()->duration / AV_TIME_BASE) > 60.0) {
             throw LargeFile();
         }
-
-        format.closeMemory();
 
         m_request.set_method(web::http::methods::POST);
         m_request.headers().add("X-Access-Token", m_accessToken);
