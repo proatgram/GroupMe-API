@@ -20,18 +20,11 @@
 #include <fstream>
 #include <cstdlib>
 
+#include "Video.h"
 
 #include "util/AVFileMem.h"
 
 int main(int argc, char** argv) {
-    
-    std::fstream file("/home/thetimbrick/Videos/vid.mp4", std::fstream::in | std::fstream::binary);
-
-    std::vector<uint8_t> vec((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-    GroupMe::Util::AVFormat mem(vec);
-
-    std::cout << (mem->duration / AV_TIME_BASE) << std::endl;
 
     return EXIT_SUCCESS;
 }
