@@ -39,8 +39,8 @@ Video::Video(const std::string& accessToken, const std::filesystem::path& path, 
         m_request.headers().add("X-Access-Token", m_accessToken);
         m_request.headers().add("X-Conversation-Id", m_conversationID);
 
-        m_parser.AddFile(m_contentPath);
-        m_request.headers().add("Content-Type", "multipart/form-data; boundary=" + m_parser.boundary());
+        m_parser.addFile(m_contentPath);
+        m_request.headers().add("Content-Type", "multipart/form-data; boundary=" + m_parser.getBoundary());
         return;
     });
 }
@@ -61,8 +61,8 @@ Video::Video(const std::string& accessToken, const std::vector<unsigned char>& c
         m_request.headers().add("X-Access-Token", m_accessToken);
         m_request.headers().add("X-Conversation-Id", m_conversationID);
 
-        m_parser.AddFile(contentVector, "file.mp4");
-        m_request.headers().add("Content-Type", "multipart/form-data;boundary=" + m_parser.boundary());
+        m_parser.addFile(contentVector, "file.mp4");
+        m_request.headers().add("Content-Type", "multipart/form-data;boundary=" + m_parser.getBoundary());
     });
 }
 
@@ -85,14 +85,14 @@ Video::Video(const std::string& accessToken, const web::uri& contentURL,const  s
 
             m_contentBinary.assign(std::istreambuf_iterator<char>(strm), std::istreambuf_iterator<char>());
 
-            m_parser.AddFile(m_contentBinary, "file.mp4");
+            m_parser.addFile(m_contentBinary, "file.mp4");
 
         });
         m_client = web::http::client::http_client("https://video.groupme.com/transcode");
 
         m_request.set_method(web::http::methods::POST);
         m_request.headers().add("X-Access-Token", m_accessToken);
-        m_request.headers().add("Content-Type", "multipart/form-data;boundary=" + m_parser.boundary());
+        m_request.headers().add("Content-Type", "multipart/form-data;boundary=" + m_parser.getBoundary());
         m_request.set_body("");
     });
 }
@@ -104,7 +104,7 @@ Video::~Video() {
 pplx::task<std::string> Video::upload() {
     m_task.wait();
 
-    m_request.set_body(m_parser.GenBodyContent());
+    m_request.set_body(m_parser.generateBody());
 
     return pplx::task<std::string>([this]() -> std::string {
 

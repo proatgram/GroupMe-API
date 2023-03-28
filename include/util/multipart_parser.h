@@ -39,47 +39,39 @@ https://github.com/AndsonYe/MultipartEncoder
 
 namespace web::http{
 
-//TODO Figure out what in the heck is happening in this class
+    class MultipartParser {
+        public:
+            MultipartParser();
 
-class MultipartParser
-{
-public:
-  MultipartParser();
-  inline const std::string &body_content()
-  {
-    return body_content_;
-  }
-  inline const std::string &boundary()
-  {
-    return boundary_;
-  }
-  void AddParameter(const std::string& name, const std::string& value);
-  
-  void AddFile(const std::filesystem::path& file);
+            const std::string &getBodyContent();
+            
+            const std::string &getBoundary();
 
-  void AddFile(const std::vector<uint8_t>& data, const std::string& name);
+            void addParameter(const std::string &name, const std::string &value);
+            
+            void addFile(const std::filesystem::path &file);
 
-  void AddFile(const std::string& data, const std::string& name);
-  
-  const std::string &GenBodyContent();
+            void addFile(const std::vector<uint8_t> &data, const std::string &name);
 
-private:
-  void _get_file_name_type(const std::string &file_path, std::string *filenae, std::string *content_type);
+            void addFile(const std::string& data, const std::string& name);
+            
+            const std::string &generateBody();
 
-  static const std::string boundary_prefix_;
+        private:
+            static std::pair<std::string, std::string> getFileNameTypes(const std::string &filePath);
 
-  static const std::string rand_chars_;
+            static const std::string m_boundaryPrefix;
 
-  std::string boundary_;
+            static const std::string m_randChars;
 
-  std::string body_content_;
+            std::string m_boundary;
 
-  std::vector<std::pair<std::string, std::string> > params_;
+            std::string m_bodyContent;
 
-  std::vector<std::pair<std::filesystem::path, std::string> > files_;
+            std::vector<std::pair<std::string, std::string>> m_params;
 
-  std::vector<std::pair<std::vector<uint8_t> , std::string>> files_raw_;
+            std::vector<std::pair<std::filesystem::path, std::string>> m_files;
 
-};
-
+            std::vector<std::pair<std::vector<uint8_t>, std::string>> m_filesRaw;
+    };
 } //namespace web
