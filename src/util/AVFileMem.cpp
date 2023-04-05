@@ -53,8 +53,10 @@ AVFormat::~AVFormat() {
         m_opaque = nullptr;
         m_avFormatContext->pb = nullptr;
         av_free(m_avioContext->buffer);
+        avformat_free_context(m_avFormatContext);
         avio_context_free(&m_avioContext);
     }
+    avformat_close_input(&m_avFormatContext);
     avformat_free_context(m_avFormatContext);
 }
 
