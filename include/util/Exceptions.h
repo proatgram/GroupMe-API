@@ -21,8 +21,17 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <exception>
 
 namespace GroupMe {
 
+    /**
+     * @brief Exception for large files
+     *
+     */
+    class LargeFile : public std::exception {
+        public:
+            char* what();
+    };
 
 }

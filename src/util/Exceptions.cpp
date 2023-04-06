@@ -16,6 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "util/Exceptions.h"
 
+using namespace GroupMe;
 
-#include "GroupMe_API.h"
+char* LargeFile::what() {
+    return (char*)"File too large.";
+}

@@ -1,5 +1,6 @@
 # Prerequisites
-*.d
+ 
+ *.d
 
 # Compiled Object files
 *.slo
@@ -35,4 +36,11 @@
 build/*
 
 # Other
+*.kdev4 
+.cache/
+.ccls-cache/
 compile_commands.json
+
+# Doxygen
+man/
+html/
