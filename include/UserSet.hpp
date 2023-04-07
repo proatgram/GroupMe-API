@@ -29,16 +29,16 @@ namespace GroupMe {
 
         using is_transparent = void;
 
-        inline size_t operator()(const std::shared_ptr<User>& a, const std::shared_ptr<User>&b ) const {
-            return (a.get()->getID() < b.get()->getID());
+        inline size_t operator()(const std::shared_ptr<User>& first, const std::shared_ptr<User>& second) const {
+            return static_cast<size_t>(first->getID() < second->getID());
         }
 
-        inline size_t operator()(const std::shared_ptr<User>& a, const std::string& id) const {
-            return (a.get()->getID() < id);
+        inline size_t operator()(const std::shared_ptr<User>& user, const std::string& matchId) const {
+            return static_cast<size_t>(user->getID() < matchId);
         }
 
-        inline size_t operator()(const std::string& id, const std::shared_ptr<User>& a) const {
-            return (a.get()->getID() < id);
+        inline size_t operator()(const std::string& matchId, const std::shared_ptr<User>& user) const {
+            return static_cast<size_t>(user->getID() < matchId);
         }
 
     };
