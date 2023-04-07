@@ -62,7 +62,7 @@ namespace GroupMe {
              * @param GUID The message unique GUID
              *
              */
-            Message(const std::string& message, const std::string& GUID = "");
+            explicit Message(const std::string& message, const std::string& GUID = "");
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -76,7 +76,7 @@ namespace GroupMe {
              * @param GUID The message unique GUID
              *
              */
-            Message(std::shared_ptr<GroupMe::User> sender, const std::string& GUID = "");
+            explicit Message(std::shared_ptr<GroupMe::User> sender, const std::string& GUID = "");
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -89,7 +89,7 @@ namespace GroupMe {
              * @param GUID The messages unique GUID
              *
              */
-            Message(const std::string& GUID = "");
+            explicit Message(const std::string& GUID = "");
 
             /**
              * @brief Gets the ID of the message
