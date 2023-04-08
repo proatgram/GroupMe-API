@@ -18,14 +18,10 @@
 
 #pragma once
 
-#include <string>
-#include <cpprest/http_client.h>
-#include <cpprest/uri.h>
+#include <memory>
+#include <nlohmann/json.hpp>
 
-#include "UserSet.hpp"
-#include "Message.h"
-#include "Picture.h"
-#include "User.h"
+#include "Chat.h"
 
 namespace GroupMe {
     /**
@@ -34,7 +30,7 @@ namespace GroupMe {
      * @brief A class to represent GroupMe group chats
      *
      */
-    class GroupChat {
+    class GroupChat : public GroupMe::Chat {
         public:
             /**
              * The visibility / joinability of the Groups.
@@ -44,42 +40,39 @@ namespace GroupMe {
              */
             enum class VisibilityType {
                 Public,
-                Private
+                Private,
+                Hidden
             };
-
-            /**
-             * Represents the query type for message querying
-             * 
-             *  - Before Message
-             *    + Gives messages returned before a given message
-             *  - After Message
-             *    + Gives message created immediately after the given message
-             *  - Since Message
-             *    + Returns _**most recent**_ messages created after the given message            *
-             *
-             * @brief Represents the query type for message querying
-             *
-             */
-            enum class QueryType {
-                Before,
-                After,
-                Since
-            };
-
-            /**
-             * The default message query amount if not specified
-             * in the web request is 20
-             *
-             * @brief Default query amount
-             *
-             */
-            static constexpr int DEFAULT_QUERY_LENGTH = 20;
 
             /**
              * @brief Constructs a new `GroupMe::GroupChat` object
              *
+             * @param token The users access token
+             *
+             * @param groupId The group ID
+             *
+             * @param name The group name
+             *
+             * @param type The visibility of the group
+             * 
+             * @param description The description of the group
+             *
+             * @param imageUrl The URL of the image for the group
+             *
+             * @param creator The group creator
+             *
+             * @param createdAt The date the group was created at
+             *
+             * @param updatedAt The date the group was updated at
+             *
+             * @param shareUrl The share URL for the group
+             *
              */
-            GroupChat();
+           GroupChat(const std::string &token, const std::string &groupId, const std::string &name, VisibilityType type, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt, const web::uri &shareUrl);
+
+           GroupChat(const std::string &token, const std::string &groupId);
+
+            ~GroupChat() override = default;
 
             /**
              * @brief Gets the group ID
@@ -98,14 +91,14 @@ namespace GroupMe {
             std::string getGroupName() const;
 
             /**
-             * @brief Sets the group name if you have the permission
+             * @brief Sets the group name
              *
              * @param name The new name to set
              *
-             * @return bool true if it succeeded and false if it didn't
+             * @return void
              *
              */
-            bool setGroupName(const std::string &name);
+            void setGroupName(const std::string &name);
 
             /**
              * @brief Gets the groups description
@@ -116,17 +109,12 @@ namespace GroupMe {
             std::string getGroupDescription() const;
 
             /**
-             * Sets the group description if you have the permission
-             *
-             * In order to be able to do this you need to have the
-             * proper permissions on the API side.
-             *
              * @brief Sets the group description
              *
-             * @return bool true if it succeeded and false if it didn't
+             * @return void
              *
              */
-            bool setGroupDescription(const std::string &description);
+            void setGroupDescription(const std::string &description);
 
             /**
              * @brief Gets the groups image URL
@@ -137,43 +125,34 @@ namespace GroupMe {
             std::string getGroupImageUrl() const;
 
             /**
-             * Sets the groups image to the image if you have the permission
-             *
-             * In order to be able to do this you need to have the
-             * proper permissions on the API side.
+             * Sets the groups image to the image
              *
              * @brief Sets the groups image
              *
              * @param image A `GroupMe::Picture` holding an image to set
              *
-             * @return bool true of it succeeded and false if it didn't
+             * @return void
              *
              */
-            bool setGroupImage(const GroupMe::Picture &image);
+            void setGroupImage(GroupMe::Picture &image);
 
             /**
-             * Sets the groups image to the image based on a url if
-             * you have the permission
-             *
-             * In order to be able to do this you need to have the
-             * proper permissions on the API side.
-             *
-             * @brief Sets the groups image
+             * @brief Sets the groups image to the image based on a url
              *
              * @param url A `web::uri` holding an image url to set
              *
-             * @return bool true of it succeeded and false if it didn't
+             * @return void
              *
              */
-            bool setGroupImage(const web::uri &url);
+            void setGroupImage(const web::uri &url);
 
             /**
-             * @brief Gets the creators user ID 
+             * @brief Gets the creator of the group
              *
-             * @return std::string The user ID for the creator of the group
+             * @return 
              *
              */
-            std::string getCreatorUserId() const;
+            std::shared_ptr<const GroupMe::User> getCreator() const;
 
             /**
              * @brief Gets the groups share URL
@@ -186,40 +165,21 @@ namespace GroupMe {
             /**
              * @brief Gets the visibility for the group
              *
-             * @return `GroupChat::VisibilityType` The visibility of the group
+             * @return `Chat::VisibilityType` The visibility of the group
              *
              */
-            GroupChat::VisibilityType getGroupVisibility() const;
+            GroupMe::GroupChat::VisibilityType getGroupVisibility() const;
 
             /**
-             * Sets the groups visibility / joinability
-             * if you have the permission
-             *
-             * In order to be able to do this you need to have the
-             * proper permissions on the API side.
-             *
-             * @brief Sets the visibility
+             * @brief Sets the groups visibility / joinability
              *
              * @param visibility The new visibility of the group to set
              *
-             * @return bool true if it succeeded and false if it didn't
+             * @return void
              *
              */
-            bool setGroupVisibility(GroupChat::VisibilityType visibility);
 
-            /**
-             * Gets the date the group was created at
-             *
-             * Not really sure the format as not much about
-             * the dates are given in the documentation
-             *
-             * @brief Gets the date and time the group was created at
-             *
-             * @return unsigned long long int The date the group was created
-             *
-             */
-            unsigned long long int getCreatedAt() const;
-
+            void setGroupVisibility(GroupMe::GroupChat::VisibilityType visibility);
             /**
              * Gets the date the group was updated at
              *
@@ -252,60 +212,46 @@ namespace GroupMe {
             bool addGroupMember(const GroupMe::User &user);
 
             /**
-             * Query messages in the group
-             *
-             * There are three ways you can query messages in a group
-             *
-             *  - Before Message
-             *    + Gives messages returned before a given message
-             *  - After Message
-             *    + Gives message created immediately after the given message
-             *  - Since Message
-             *    + Returns _**most recent**_ messages created after the given message
-             *
-             * There is also a limit to how many it will give you, the default the API sets is 20
-             *
-             * @brief Query messages in the group
-             *
-             * @param referenceMessage The message you want to use as the reference to query
-             *
-             * @param queryType The query type you would like to use as a `GroupMe::GroupChat::QueryType`
-             *
-             * @param messageCount The count of messages that will be queried. The default is 20 if none is supplied.
-             *
-             * @return bool true if it succeeded and false if it didn't
+             * @brief Updates a group after creation
+             * 
+             * @return bool true if succeeded and false if not
              *
              */
-            bool queryMessages(const GroupMe::Message &referenceMessage, GroupMe::GroupChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH);
+            bool update() const;
+
+            bool queryMessages(const GroupMe::Message &referenceMessage, GroupMe::Chat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
         private:
-            bool queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH);
+            bool queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
-            bool queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH);
+            bool queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
-            bool queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH);
+            bool queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+
+            web::uri m_endpointUrl;
+
+            web::http::http_request m_request;
+
+            web::http::client::http_client m_client;
+
+            std::string m_accessToken;
 
             std::string m_groupId;
             
             std::string m_groupName;
 
-            std::string m_description;
+            std::string m_groupDescription;
 
-            std::string m_imageUrl;
+            std::string m_groupImageUrl;
 
-            std::string m_creatorUserId;
+            std::string m_groupShareUrl;
 
-            std::string m_shareUrl;
-
-            GroupChat::VisibilityType m_visibilityType;
-
-            unsigned long long int m_createdAt;
+            GroupChat::VisibilityType m_groupVisibility;
 
             unsigned long long int m_updatedAt;
 
-            GroupMe::UserSet m_members;
+            std::shared_ptr<GroupMe::User> m_groupCreator;
 
-            std::vector<GroupMe::Message> m_messages;
-            
+            GroupMe::UserSet m_groupMembers;
     };
 }

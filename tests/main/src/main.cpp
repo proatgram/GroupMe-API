@@ -20,11 +20,12 @@
 #include <fstream>
 #include <cstdlib>
 
-#include "Video.h"
-
-#include "util/AVFileMem.h"
+#include "GroupChat.h"
 
 int main(int argc, char** argv) {
+    GroupMe::GroupChat chat("***REMOVED***", "***REMOVED***");
+
+    std::cout << "Group name: " << chat.getGroupName() << std::endl;
 
     return EXIT_SUCCESS;
 }
