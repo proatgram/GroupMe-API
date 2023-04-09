@@ -26,7 +26,6 @@
 
 namespace GroupMe {
     struct UserCompare {
-
         using is_transparent = void;
 
         inline size_t operator()(const std::shared_ptr<User>& first, const std::shared_ptr<User>& second) const {
@@ -40,7 +39,6 @@ namespace GroupMe {
         inline size_t operator()(const std::string& matchId, const std::shared_ptr<User>& user) const {
             return static_cast<size_t>(user->getID() < matchId);
         }
-
     };
 
     /**

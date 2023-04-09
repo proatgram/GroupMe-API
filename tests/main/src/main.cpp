@@ -25,6 +25,10 @@
 int main(int argc, char** argv) {
     GroupMe::GroupChat chat("***REMOVED***", "***REMOVED***");
 
+    chat.setGroupName("C C A A T T");
+
+    chat.update().wait();
+
     std::cout << "Group name: " << chat.getGroupName() << std::endl;
 
     return EXIT_SUCCESS;

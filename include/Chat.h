@@ -30,52 +30,27 @@
 
 namespace GroupMe {
     /**
-     * @brief A class that represents a chat
+     * @brief A class that represents the most basic form of a chat
+     * only consisting of an ID for the chat
      *
      */
     class Chat {
         public:
             /**
-             * Represents the query type for message querying
-             * 
-             *  - Before Message
-             *    + Gives messages returned before a given message
-             *  - After Message
-             *    + Gives message created immediately after the given message
-             *  - Since Message
-             *    + Returns _**most recent**_ messages created after the given message
+             * @brief Constructs a new `GroupMe::Chat` object
              *
-             * @brief Represents the query type for message querying
+             * @param chatId The ID of the Chat
              *
              */
-            enum class QueryType {
-                Before,
-                After,
-                Since
-            };
-
-            /**
-             * The default message query amount if not specified
-             * in the web request is 20
-             *
-             * @brief Default query amount
-             *
-             */
-            static constexpr int DEFAULT_QUERY_LENGTH = 20;
+            explicit Chat(const std::string &chatId);
 
             /**
              * @brief Constructs a new `GroupMe::Chat` object
              *
              */
-            explicit Chat(unsigned long long int createdAt);
+            Chat() = default;
 
-            /**
-             * @brief Constructs a new `GroupMe::Chat` object
-             *
-             */
-            Chat();
-
-            virtual ~Chat();
+            virtual ~Chat() = default;
 
             Chat(const Chat &other) = delete;
 
@@ -84,60 +59,7 @@ namespace GroupMe {
             Chat& operator=(const Chat &other) = delete;
 
             Chat& operator=(Chat &&other) = delete;
-
-            /**
-             * Gets the date the chat was created at
-             *
-             * Not really sure the format as not much about
-             * the dates are given in the documentation
-             *
-             * @brief Gets the date and time the chat was created at
-             *
-             * @return unsigned long long int The date the chat was created
-             *
-             */
-            unsigned long long int getCreatedAt() const;
-
-            /**
-             * Query messages in the group
-             *
-             * There are three ways you can query messages in a chat
-             *
-             *  - Before Message
-             *    + Gives messages returned before a given message
-             *  - After Message
-             *    + Gives message created immediately after the given message
-             *  - Since Message
-             *    + Returns _**most recent**_ messages created after the given message
-             *
-             * There is also a limit to how many it will give you, the default the API sets is 20
-             *
-             * @brief Query messages in the chat
-             *
-             * @param referenceMessage The message you want to use as the reference to query
-             *
-             * @param queryType The query type you would like to use as a `GroupMe::Chat::QueryType`
-             *
-             * @param messageCount The count of messages that will be queried. The default is 20 if none is supplied.
-             *
-             * @return bool true if it succeeded and false if it didn't
-             *
-             */
-            virtual bool queryMessages(const GroupMe::Message &referenceMessage, GroupMe::Chat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH);
-
         protected:
-            virtual bool queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH);
-
-            virtual bool queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH);
-
-            virtual bool queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH);
-
-            unsigned long long int m_createdAt;
-
-            std::vector<GroupMe::Message> m_messages;
-            
-            pplx::task<void> m_task;
-
-            mutable std::mutex m_mutex;
+            std::string m_chatId;
     };
 }

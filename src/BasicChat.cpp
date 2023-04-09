@@ -16,12 +16,40 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "Chat.h"
+#include "BasicChat.h"
 
 using namespace GroupMe;
 
-Chat::Chat(const std::string &chatId) :
-    m_chatId(chatId)
+BasicChat::BasicChat(const std::string &chatId, unsigned long long int createdAt) :
+    Chat(chatId),
+    m_createdAt(createdAt), 
+    m_task(pplx::task<void>([]() -> void {}))
 {
 
+}
+
+BasicChat::BasicChat(const std::string &chatId) :
+    Chat(chatId),
+    m_createdAt(),
+    m_task(pplx::task<void>([]() -> void {}))
+{
+
+}
+
+BasicChat::BasicChat() :
+    m_createdAt(),
+    m_task(pplx::task<void>([]() -> void {
+        return;
+    }))
+{
+    
+}
+
+BasicChat::~BasicChat() {
+    m_task.wait();
+}
+
+unsigned long long int BasicChat::getCreatedAt() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_createdAt;
 }

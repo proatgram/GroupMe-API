@@ -23,9 +23,8 @@
 using namespace GroupMe;
 
 GroupChat::GroupChat(const std::string &token, const std::string &groupId, const std::string &name, VisibilityType type, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt, const web::uri &shareUrl) :
-    Chat(createdAt),
+    BasicChat(groupId, createdAt),
     m_accessToken(token),
-    m_groupId(groupId),
     m_groupName(name),
     m_groupDescription(description),
     m_groupImageUrl(imageUrl.to_string()),
@@ -40,8 +39,8 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId, const
 }
 
 GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
+    BasicChat(groupId),
     m_accessToken(token),
-    m_groupId(groupId),
     m_endpointUrl("https://api.groupme.com/v3/groups"),
     m_client(m_endpointUrl)
 {
@@ -50,14 +49,14 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
 
     web::uri_builder builder(m_endpointUrl);
 
-    builder.append_path(m_groupId);
+    builder.append_path(m_chatId);
 
     m_client = web::http::client::http_client(builder.to_uri());
 
     m_client.request(m_request).then([this](const web::http::http_response &response) -> void {
         auto group = nlohmann::json::parse(response.extract_string(true).get())["response"];
 
-        m_groupId = group["id"];
+        m_chatId = group["id"];
 
         m_groupName = group["name"];
         
@@ -75,14 +74,17 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
 
         
         for (auto &member : group["members"]) {
-            m_groupMembers.insert(std::make_shared<User>(
+            std::shared_ptr<User> user = std::make_shared<User>(
                 member["user_id"],
                 member["nickname"],
                 member["image_url"],
                 "",
                 "",
                 ""
-            ));
+            );
+            m_groupMembers.insert(user);
+            m_memberGroupId.emplace(user, member["id"]);
+            std::cout << m_memberGroupId.at(user) << std::endl;
         }
 
         m_groupShareUrl = group["share_url"];
@@ -93,7 +95,7 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
 
 std::string GroupChat::getGroupId() const {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return m_groupId;
+    return m_chatId;
 }
 
 std::string GroupChat::getGroupName() const {
@@ -163,18 +165,18 @@ const GroupMe::UserSet& GroupChat::getGroupMembers() const {
     return m_groupMembers;
 }
 
-bool GroupChat::addGroupMember(const GroupMe::User &user) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto [pos, insert] = m_groupMembers.insert(std::make_shared<User>(user));
-    m_task = pplx::task<void>([this, &user]() {
+pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
+    return pplx::task<bool>([this, user]() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+
         m_request.set_method(web::http::methods::POST);
         m_request.headers().add("X-Access-Token", m_accessToken);
         
         web::uri_builder builder(m_endpointUrl);
-        builder.append_path(m_groupId);
+        builder.append_path(m_chatId);
         builder.append_path("members/add");
 
-        m_request.set_request_uri(builder.to_uri());
+        m_client = web::http::client::http_client(builder.to_uri());
 
         nlohmann::json body;
 
@@ -185,30 +187,296 @@ bool GroupChat::addGroupMember(const GroupMe::User &user) {
         body["members"][0]["email"] = user.getEmail();
 
         m_request.set_body(body.dump());
+
+        bool returnValue = false;
+
+        std::string resultId;
+
+        m_client.request(m_request).then([this, &returnValue, &resultId](const web::http::http_response &response) -> void {
+            if (response.status_code() != web::http::status_codes::OK) {
+                return;
+            }
+            resultId = nlohmann::json::parse(response.to_string())["response"]["result_id"];
+            returnValue = true;
+        }).wait();
+
+        if (returnValue) {
+            m_request.set_method(web::http::methods::GET);
+
+            builder = web::http::uri_builder(m_endpointUrl);
+            builder.append_path(m_chatId);
+            builder.append_path("members");
+            builder.append_path(resultId);
+
+            m_client = web::http::client::http_client(builder.to_uri());
+
+            bool ready = false;
+            bool resultsNotAvalliable = false;
+            std::shared_ptr<User> sharedUser = std::make_shared<User>(user);
+            while (!ready) {
+                m_client.request(m_request).then([this, &ready, &resultsNotAvalliable, &sharedUser](const web::http::http_response &response) -> void {
+                    if (response.status_code() == web::http::status_codes::NotFound) {
+                        ready = true;
+                        resultsNotAvalliable = true;
+                        return;
+                    }
+                    if (response.status_code() == web::http::status_codes::ServiceUnavailable) {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+                        return;
+                    }
+                    m_memberGroupId.emplace(sharedUser, nlohmann::json::parse(response.to_string())["response"]["id"]);
+                    const auto [it, insert] = m_groupMembers.insert(sharedUser);
+                    ready = true;
+                }).wait();
+            }
+        }
+        return returnValue;
     });
 }
 
-bool GroupChat::update() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
+pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> &user) {
+    return pplx::task<bool>([this, user]() -> bool {
+        std::lock_guard<std::mutex> lock(m_mutex);
 
+        m_request.set_method(web::http::methods::POST);
+        m_request.headers().add("X-Access-Token", m_accessToken);
+        
+        web::uri_builder builder(m_endpointUrl);
+        builder.append_path(m_chatId);
+        builder.append_path("members/add");
+
+        m_client = web::http::client::http_client(builder.to_uri());
+
+        nlohmann::json body;
+
+        body["members"][0]["nickname"] = user->getNickname();
+        body["members"][0]["user_id"] = user->getID();
+        body["members"][0]["guid"] = user->getGUID();
+        body["members"][0]["phone_number"] = user->getPhoneNumber();
+        body["members"][0]["email"] = user->getEmail();
+
+        m_request.set_body(body.dump());
+
+        bool returnValue = false;
+
+        std::string resultId;
+
+        m_client.request(m_request).then([this, &returnValue, &resultId](const web::http::http_response &response) -> void {
+            if (response.status_code() != web::http::status_codes::OK) {
+                return;
+            }
+            resultId = nlohmann::json::parse(response.to_string())["response"]["result_id"];
+            returnValue = true;
+        }).wait();
+
+        if (returnValue) {
+            m_request.set_method(web::http::methods::GET);
+
+            builder = web::http::uri_builder(m_endpointUrl);
+            builder.append_path(m_chatId);
+            builder.append_path("members");
+            builder.append_path(resultId);
+
+            m_client = web::http::client::http_client(builder.to_uri());
+
+            bool ready = false;
+            bool resultsNotAvalliable = false;
+            while (!ready) {
+                m_client.request(m_request).then([this, &ready, &resultsNotAvalliable, &user](const web::http::http_response &response) -> void {
+                    if (response.status_code() == web::http::status_codes::NotFound) {
+                        ready = true;
+                        resultsNotAvalliable = true;
+                        return;
+                    }
+                    if (response.status_code() == web::http::status_codes::ServiceUnavailable) {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+                        return;
+                    }
+                    m_memberGroupId.emplace(user, nlohmann::json::parse(response.to_string())["response"]["id"]);
+                    const auto [it, insert] = m_groupMembers.insert(user);
+                    ready = true;
+                }).wait();
+            }
+        }
+        return returnValue;
+    });
 }
 
-bool GroupChat::queryMessages(const Message &referenceMessage, Chat::QueryType queryType, unsigned int messageCount) {
+pplx::task<bool> GroupChat::removeGroupMember(const GroupMe::User &user) {
+    return pplx::task<bool>([this, user]() -> bool {
+            std::lock_guard<std::mutex> lock(m_mutex);
+
+            std::shared_ptr<User> sharedUser = std::make_shared<User>(user);
+            
+            web::http::uri_builder builder(m_endpointUrl);
+
+            builder.append_path(m_chatId);
+            builder.append_path("members");
+            builder.append_path(m_memberGroupId.at(sharedUser));
+            builder.append_path("remove");
+
+            m_request.set_method(web::http::methods::POST);
+
+            m_client = web::http::client::http_client(builder.to_uri());
+
+            bool returnValue = false;
+
+            m_client.request(m_request).then([this, &returnValue, &sharedUser](const web::http::http_response &response) -> void {
+                if (response.status_code() != web::http::status_codes::OK) {
+                    m_groupMembers.erase(sharedUser);
+                    m_memberGroupId.erase(sharedUser);
+                    return;
+                }
+                returnValue = true;
+            }).wait();
+
+            return returnValue;
+    });
+}
+
+pplx::task<bool> GroupChat::removeGroupMember(const std::shared_ptr<GroupMe::User> &user) {
+    return pplx::task<bool>([this, user]() -> bool {
+            std::lock_guard<std::mutex> lock(m_mutex);
+
+            web::http::uri_builder builder(m_endpointUrl);
+
+            builder.append_path(m_chatId);
+            builder.append_path("members");
+            builder.append_path(m_memberGroupId.at(user));
+            builder.append_path("remove");
+
+            m_request.set_method(web::http::methods::POST);
+
+            m_client = web::http::client::http_client(builder.to_uri());
+
+            bool returnValue = false;
+
+            m_client.request(m_request).then([this, &returnValue, &user](const web::http::http_response &response) -> void {
+                if (response.status_code() != web::http::status_codes::OK) {
+                    m_groupMembers.erase(user);
+                    m_memberGroupId.erase(user);
+                    return;
+                }
+                returnValue = true;
+            }).wait();
+
+            return returnValue;
+    });
+}
+
+pplx::task<bool> GroupChat::destroyGroup() {
+    return pplx::task<bool>([this]() -> bool {
+            std::lock_guard<std::mutex> lock(m_mutex);
+
+            web::http::uri_builder builder(m_endpointUrl);
+
+            builder.append_path(m_chatId);
+            builder.append_path("destroy");
+
+            m_request.set_method(web::http::methods::POST);
+
+            m_client = web::http::client::http_client(builder.to_uri());
+
+            bool returnValue = false;
+
+            m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+                if (response.status_code() != web::http::status_codes::OK) {
+                    return;
+                }
+                returnValue = true;
+            }).wait();
+            return returnValue;
+    });
+}
+
+pplx::task<bool> GroupChat::update() {
+    return pplx::task<bool>([this]() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        nlohmann::json json;
+        json["name"] = m_groupName;
+
+        json["description"] = m_groupDescription;
+
+        json["image_url"] = m_groupImageUrl;
+
+        json["share"] = true;
+
+        m_request.set_method(web::http::methods::POST);
+
+        web::uri_builder builder(m_endpointUrl);
+
+        builder.append_path(m_chatId);
+        builder.append_path("update");
+
+        m_client = web::http::client::http_client(builder.to_uri());
+
+        m_request.set_body(json.dump());
+
+        bool returnValue = false;
+
+        m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+            if (response.status_code() != web::http::status_codes::OK) {
+                return;
+            }
+            returnValue = true;
+
+            auto group = nlohmann::json::parse(response.extract_string(true).get())["response"];
+                
+            m_chatId = group["id"];
+
+            m_groupName = group["name"];
+            
+            if (group["type"] == "private") {
+                m_groupVisibility = VisibilityType::Private;
+            }
+            else if (group["type"] == "public") {
+                m_groupVisibility = VisibilityType::Public;
+            }
+
+            m_groupDescription = group["description"];
+
+            m_createdAt = group["created_at"];
+            m_updatedAt = group["updated_at"];
+
+            m_groupShareUrl = group["share_url"];
+            for (auto &member : group["members"]) {
+                std::shared_ptr<User> user = std::make_shared<User>(
+                    member["user_id"],
+                    member["nickname"],
+                    member["image_url"],
+                    "",
+                    "",
+                    ""
+                );
+                if (const auto [it, insert] = m_groupMembers.insert(user); insert) {
+                    m_memberGroupId.emplace(user, member["id"]);
+                }
+            }
+            m_groupCreator = *m_groupMembers.find(group["creator_user_id"]);
+        }).wait();
+        return returnValue;
+    });
+}
+
+bool GroupChat::queryMessages(const Message &referenceMessage, BasicChat::QueryType queryType, unsigned int messageCount) {
     switch (queryType) {
-        case Chat::QueryType::Before: {
+        case BasicChat::QueryType::Before: {
             return queryMessagesBefore(referenceMessage, messageCount);
         }
-        case Chat::QueryType::After: {
+        case BasicChat::QueryType::After: {
             return queryMessagesAfter(referenceMessage, messageCount);
         }
-        case Chat::QueryType::Since: {
+        case BasicChat::QueryType::Since: {
             return queryMessagesSince(referenceMessage, messageCount);
+        }
+        default: {
+            return false;
         }
     }
 }
 
 bool GroupChat::queryMessagesBefore(const Message &beforeMessage, unsigned int messageCount) {
-
+    
 }
 
 bool GroupChat::queryMessagesAfter(const Message &afterMessage, unsigned int messageCount) {

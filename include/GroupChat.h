@@ -19,9 +19,12 @@
 #pragma once
 
 #include <memory>
+#include <map>
+#include <thread>
+#include <chrono>
 #include <nlohmann/json.hpp>
 
-#include "Chat.h"
+#include "BasicChat.h"
 
 namespace GroupMe {
     /**
@@ -30,7 +33,7 @@ namespace GroupMe {
      * @brief A class to represent GroupMe group chats
      *
      */
-    class GroupChat : public GroupMe::Chat {
+    class GroupChat : public GroupMe::BasicChat {
         public:
             /**
              * The visibility / joinability of the Groups.
@@ -70,6 +73,16 @@ namespace GroupMe {
              */
            GroupChat(const std::string &token, const std::string &groupId, const std::string &name, VisibilityType type, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt, const web::uri &shareUrl);
 
+           /**
+            * @brief Constructs a new `GroupMe::GroupChat` object
+            *
+            * This will try to sync data about the group using the API
+            *
+            * @param token The users access token
+            *
+            * @param groupId The group ID
+            *
+            */
            GroupChat(const std::string &token, const std::string &groupId);
 
             ~GroupChat() override = default;
@@ -202,14 +215,78 @@ namespace GroupMe {
             const GroupMe::UserSet& getGroupMembers() const;
 
             /**
-             * @brief Adds members to the group
+             * @brief Adds a member to the group
              *
              * @param user The user to add to the group as a `GroupMe::User`
              *
-             * @return bool true if succeeded and false if not
+             * @return pplx::task<bool> true if succeeded and false if not
              *
              */
-            bool addGroupMember(const GroupMe::User &user);
+            pplx::task<bool> addGroupMember(const GroupMe::User &user);
+
+            /**
+             * @brief Adds a member to the group
+             *
+             * @param user The user to add to the group as encapsulated in a `std::shared_ptr<GroupMe::User>`
+             *
+             * @return pplx::task<bool> true if succeeded and false if not
+             *
+             */
+            pplx::task<bool> addGroupMember(const std::shared_ptr<GroupMe::User> &user);
+
+            /**
+             * @brief Removes a member from the group
+             *
+             * @param user The user to remvoe from the group as a `GroupMe::User`
+             *
+             * @return pplx::task<bool> true if succeeded and false if not
+             *
+             */
+            pplx::task<bool> removeGroupMember(const GroupMe::User &user);
+
+            /**
+             * @brief Removes a member from the group
+             *
+             * @param user The user to remove from the group encapsulated in a `std::shared_ptr<GroupMe::User>`
+             *
+             * @return pplx::task<bool> true if succeeded and false if not
+             *
+             */
+            pplx::task<bool> removeGroupMember(const std::shared_ptr<GroupMe::User> &user);
+
+            /**
+             * @brief Disbands / destroys a group
+             *
+             * This action is only available to the group creator
+             *
+             * @return pplx::task<bool> true if succeeded and false if not
+             *
+             */
+            pplx::task<bool> destroyGroup();
+
+            /**
+             * @brief Change the owner of the group
+             *
+             * This action is only available to the group creator
+             *
+             * @param user The new owner to set as a `GroupMe::User`
+             *
+             * @return pplx::task<bool> true if succeeded and false if not
+             *
+             */
+            pplx::task<bool> changeGroupOwner(const GroupMe::User &user);
+
+            /**
+             * @brief Change the owner of the group
+             *
+             * This action is only available to the group creator
+             *
+             * @param user The new owner to set as a `std::shared_ptr<GroupMe::User>`
+             *
+             * @return pplx::task<bool> true if succeeded and false if not
+             *
+             */
+            bool changeGroupOwner(const std::shared_ptr<GroupMe::User> &user);
 
             /**
              * @brief Updates a group after creation
@@ -217,9 +294,9 @@ namespace GroupMe {
              * @return bool true if succeeded and false if not
              *
              */
-            bool update() const;
+            pplx::task<bool> update();
 
-            bool queryMessages(const GroupMe::Message &referenceMessage, GroupMe::Chat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            bool queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
         private:
             bool queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
@@ -236,8 +313,6 @@ namespace GroupMe {
 
             std::string m_accessToken;
 
-            std::string m_groupId;
-            
             std::string m_groupName;
 
             std::string m_groupDescription;
@@ -251,6 +326,8 @@ namespace GroupMe {
             unsigned long long int m_updatedAt;
 
             std::shared_ptr<GroupMe::User> m_groupCreator;
+
+            std::map<std::shared_ptr<GroupMe::User>, std::string, GroupMe::UserCompare> m_memberGroupId;
 
             GroupMe::UserSet m_groupMembers;
     };
