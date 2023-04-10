@@ -458,7 +458,11 @@ pplx::task<bool> GroupChat::update() {
     });
 }
 
-bool GroupChat::queryMessages(const Message &referenceMessage, BasicChat::QueryType queryType, unsigned int messageCount) {
+pplx::task<bool> GroupChat::queryMessages(const Message &referenceMessage, BasicChat::QueryType queryType, unsigned int messageCount) {
+    m_request.set_method(web::http::methods::GET);
+
+    web::http::uri_builder builder(m_endpointUrl);
+    
     switch (queryType) {
         case BasicChat::QueryType::Before: {
             return queryMessagesBefore(referenceMessage, messageCount);
@@ -470,19 +474,73 @@ bool GroupChat::queryMessages(const Message &referenceMessage, BasicChat::QueryT
             return queryMessagesSince(referenceMessage, messageCount);
         }
         default: {
-            return false;
+            return pplx::task<bool>([]() -> bool { return false; });
         }
     }
 }
 
-bool GroupChat::queryMessagesBefore(const Message &beforeMessage, unsigned int messageCount) {
+pplx::task<bool> GroupChat::queryMessagesBefore(const Message &beforeMessage, unsigned int messageCount) {
+    web::http::uri_builder builder(m_endpointUrl);
+
+    builder.append_path(m_chatId);
+    builder.append_path("messages");
     
+    builder.append_query("before_id", beforeMessage.getID());
+    builder.append_query("limit", messageCount);
+
+    m_client = web::http::client::http_client(builder.to_uri());
+    return pplx::task<bool>([this]() -> bool {
+        bool returnValue = false;
+        m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+            if (response.status_code() != web::http::status_codes::OK) {
+                return;
+            }
+            returnValue = true;
+        }).wait();
+        return returnValue;
+    });
 }
 
-bool GroupChat::queryMessagesAfter(const Message &afterMessage, unsigned int messageCount) {
+pplx::task<bool> GroupChat::queryMessagesAfter(const Message &afterMessage, unsigned int messageCount) {
+    web::http::uri_builder builder(m_endpointUrl);
 
+    builder.append_path(m_chatId);
+    builder.append_path("messages");
+    
+    builder.append_query("after_id", afterMessage.getID());
+    builder.append_query("limit", messageCount);
+
+    m_client = web::http::client::http_client(builder.to_uri());
+    return pplx::task<bool>([this]() -> bool {
+        bool returnValue = false;
+        m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+            if (response.status_code() != web::http::status_codes::OK) {
+                return;
+            }
+            returnValue = true;
+        }).wait();
+        return returnValue;
+    });
 }
 
-bool GroupChat::queryMessagesSince(const Message &sinceMessage, unsigned int messageCount) {
+pplx::task<bool> GroupChat::queryMessagesSince(const Message &sinceMessage, unsigned int messageCount) {
+    web::http::uri_builder builder(m_endpointUrl);
 
+    builder.append_path(m_chatId);
+    builder.append_path("messages");
+    
+    builder.append_query("since_id", sinceMessage.getID());
+    builder.append_query("limit", messageCount);
+
+    m_client = web::http::client::http_client(builder.to_uri());
+    return pplx::task<bool>([this]() -> bool {
+        bool returnValue = false;
+        m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+            if (response.status_code() != web::http::status_codes::OK) {
+                return;
+            }
+            returnValue = true;
+        }).wait();
+        return returnValue;
+    });
 }

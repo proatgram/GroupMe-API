@@ -286,7 +286,7 @@ namespace GroupMe {
              * @return pplx::task<bool> true if succeeded and false if not
              *
              */
-            bool changeGroupOwner(const std::shared_ptr<GroupMe::User> &user);
+            pplx::task<bool> changeGroupOwner(const std::shared_ptr<GroupMe::User> &user);
 
             /**
              * @brief Updates a group after creation
@@ -296,14 +296,14 @@ namespace GroupMe {
              */
             pplx::task<bool> update();
 
-            bool queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<bool> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
         private:
-            bool queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<bool> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
-            bool queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<bool> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
-            bool queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<bool> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
             web::uri m_endpointUrl;
 

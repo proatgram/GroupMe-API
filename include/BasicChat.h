@@ -107,6 +107,7 @@ namespace GroupMe {
              *    + Returns _**most recent**_ messages created after the given message
              *
              * There is also a limit to how many it will give you, the default the API sets is 20
+             * Not only that there is a maximum it can give you, which is 100 messages
              *
              * @brief Query messages in the chat
              *
@@ -119,14 +120,14 @@ namespace GroupMe {
              * @return bool true if it succeeded and false if it didn't
              *
              */
-            virtual bool queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<bool> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
         protected:
-            virtual bool queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<bool> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
-            virtual bool queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<bool> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
-            virtual bool queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<bool> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
             unsigned long long int m_createdAt;
 
