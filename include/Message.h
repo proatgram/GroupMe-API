@@ -20,9 +20,14 @@
 
 #include <string>
 #include <memory>
+#include <nlohmann/json.hpp>
 
 #include "Attachment.h"
+#include "Picture.h"
+#include "Video.h"
+#include "File.h"
 #include "User.h"
+#include "UserSet.hpp"
 
 namespace GroupMe {
     /**
@@ -48,7 +53,7 @@ namespace GroupMe {
              * @param GUID The messages unique GUID
              *
              */
-            Message(std::shared_ptr<GroupMe::User> sender, const std::string& message, const std::string& GUID = "");
+            Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& message, const std::string& GUID = "");
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -76,7 +81,7 @@ namespace GroupMe {
              * @param GUID The message unique GUID
              *
              */
-            explicit Message(std::shared_ptr<GroupMe::User> sender, const std::string& GUID = "");
+            explicit Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& GUID = "");
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -90,6 +95,16 @@ namespace GroupMe {
              *
              */
             explicit Message(const std::string& GUID = "");
+
+            /**
+             * @brief Constructs a `GroupMe::Message` from a json.
+             *
+             * @param json A json that holds message data
+             *
+             * @param users The users that are the group that the message was sent in
+             *
+             */
+            static Message createFromJson(const nlohmann::json &json, const GroupMe::UserSet &user);
 
             /**
              * @brief Gets the ID of the message
@@ -170,6 +185,14 @@ namespace GroupMe {
              *
              */
             void setSender(const std::shared_ptr<GroupMe::User>& sender);
+
+            /**
+             * @brief Adds a person to the favorited by list
+             *
+             * @param favoritedBy The user who favorited the message
+             *
+             */
+            void addFavorited(const std::shared_ptr<GroupMe::User> &favoritedBy);
 
         private:
             std::string m_id;

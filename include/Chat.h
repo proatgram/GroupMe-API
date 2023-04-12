@@ -19,9 +19,8 @@
 #pragma once
 
 #include <string>
-#include <mutex>
-#include <cpprest/http_client.h>
-#include <cpprest/uri.h>
+#include <memory>
+#include <set>
 
 #include "UserSet.hpp"
 #include "Message.h"
