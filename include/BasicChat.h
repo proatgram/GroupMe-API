@@ -122,6 +122,8 @@ namespace GroupMe {
              */
             virtual pplx::task<bool> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
+            virtual pplx::task<bool> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+
         protected:
             virtual pplx::task<bool> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 

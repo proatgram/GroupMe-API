@@ -84,7 +84,6 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
             );
             m_groupMembers.insert(user);
             m_memberGroupId.emplace(user, member["id"]);
-            std::cout << m_memberGroupId.at(user) << std::endl;
         }
 
         m_groupShareUrl = group["share_url"];
@@ -196,7 +195,7 @@ pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
-            resultId = nlohmann::json::parse(response.to_string())["response"]["result_id"];
+            resultId = nlohmann::json::parse(response.extract_string(true).get())["response"]["result_id"];
             returnValue = true;
         }).wait();
 
@@ -224,7 +223,7 @@ pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
                         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
                         return;
                     }
-                    m_memberGroupId.emplace(sharedUser, nlohmann::json::parse(response.to_string())["response"]["id"]);
+                    m_memberGroupId.emplace(sharedUser, nlohmann::json::parse(response.extract_string(true).get())["response"]["id"]);
                     const auto [it, insert] = m_groupMembers.insert(sharedUser);
                     ready = true;
                 }).wait();
@@ -265,7 +264,7 @@ pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> 
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
-            resultId = nlohmann::json::parse(response.to_string())["response"]["result_id"];
+            resultId = nlohmann::json::parse(response.extract_string(true).get())["response"]["result_id"];
             returnValue = true;
         }).wait();
 
@@ -292,7 +291,7 @@ pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> 
                         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
                         return;
                     }
-                    m_memberGroupId.emplace(user, nlohmann::json::parse(response.to_string())["response"]["id"]);
+                    m_memberGroupId.emplace(user, nlohmann::json::parse(response.extract_string(true).get())["response"]["id"]);
                     const auto [it, insert] = m_groupMembers.insert(user);
                     ready = true;
                 }).wait();
@@ -479,6 +478,34 @@ pplx::task<bool> GroupChat::queryMessages(const Message &referenceMessage, Basic
     }
 }
 
+pplx::task<bool> GroupChat::queryMessages(unsigned int messageCount) {
+    web::http::uri_builder builder(m_endpointUrl);
+
+    builder.append_path(m_chatId);
+    builder.append_path("messages");
+    
+    builder.append_query("limit", messageCount);
+
+    m_client = web::http::client::http_client(builder.to_uri());
+    return pplx::task<bool>([this]() -> bool {
+        bool returnValue = false;
+        m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+            if (response.status_code() != web::http::status_codes::OK) {
+                return;
+            }
+
+            nlohmann::json json = nlohmann::json::parse(response.extract_string(true).get())["response"];
+
+            for (const auto &message : json["messages"]) {
+                m_messages.push_back(Message::createFromJson(message, m_groupMembers));
+                std::cout << "Message: " << m_messages.at(m_messages.size() - 1).getText() << std::endl;
+            }
+            returnValue = true;
+        }).wait();
+        return returnValue;
+    });
+}
+
 pplx::task<bool> GroupChat::queryMessagesBefore(const Message &beforeMessage, unsigned int messageCount) {
     web::http::uri_builder builder(m_endpointUrl);
 
@@ -494,6 +521,12 @@ pplx::task<bool> GroupChat::queryMessagesBefore(const Message &beforeMessage, un
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
+            }
+
+            nlohmann::json json = nlohmann::json::parse(response.extract_string(true).get())["response"];
+
+            for (const auto &message : json["messages"]) {
+                m_messages.push_back(Message::createFromJson(message, m_groupMembers));
             }
             returnValue = true;
         }).wait();

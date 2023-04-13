@@ -298,6 +298,8 @@ namespace GroupMe {
 
             pplx::task<bool> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
+            pplx::task<bool> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+
         private:
             pplx::task<bool> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 

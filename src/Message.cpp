@@ -20,39 +20,46 @@
 
 using namespace GroupMe;
 
-Message::Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& message, const std::string& GUID) :
+Message::Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& message, const std::string& GUID, const Type &type) :
     m_guid(GUID),
     m_createdAt(),
     m_pinned(),
     m_pinnedAt(),
     m_sender(sender),
-    m_text(message)
+    m_text(message),
+    m_type(type)
 {
 
 }
 
-Message::Message(const std::string& message, const std::string& GUID) :
+Message::Message(const std::string& message, const std::string& GUID, const Type &type) :
     m_guid(GUID),
     m_createdAt(),
     m_pinned(),
     m_pinnedAt(),
-    m_text(message)
+    m_text(message),
+    m_type(type)
 {
 
 }
 
-Message::Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& GUID) :
+Message::Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& GUID, const Type &type) :
     m_guid(GUID),
-    m_sender(sender)
+    m_sender(sender),
+    m_createdAt(),
+    m_pinned(),
+    m_pinnedAt(),
+    m_type(type)
 {
 
 }
 
-Message::Message(const std::string& GUID) :
+Message::Message(const std::string& GUID, const Type &type) :
     m_guid(GUID),
     m_createdAt(),
     m_pinned(),
-    m_pinnedAt()
+    m_pinnedAt(),
+    m_type(type)
 {
 
 }
@@ -63,28 +70,37 @@ Message Message::createFromJson(const nlohmann::json &json, const UserSet &users
     message.setID(json["id"]);
     message.setCreatedAt(json["created_at"]);
 
-    UserSet::iterator sender = users.find(json["user_id"]);
+    if (!json["text"].is_null()) {
+        message.attach(json["text"]);
+    }
 
-    if (sender != users.cend()) {
-        message.setSender(*sender);
+    if (json["system"]) {
+        message.setSender(std::make_shared<User>("system", "GroupMe", "", "", "", ""));
+        message.setType(Type::System);
     }
     else {
-        message.setSender(std::make_shared<User>(json["user_id"], json["name"], json["avatar_url"], "", "", ""));
-    }
-    
-    message.attach(json["text"]);
+        message.setType(Type::User);
+        UserSet::iterator sender = users.find(json["sender_id"]);
 
-    for (const auto& user : json["favorited_by"]) {
-        UserSet::iterator itUser = users.find(user);
-        if (itUser != users.cend()) {
-            message.addFavorited(*itUser);
+        if (sender != users.cend()) {
+            message.setSender(*sender);
         }
-    }
+        else {
+            message.setSender(std::make_shared<User>(json["sender_id"], json["name"], json["avatar_url"], "", "", ""));
+        }
 
-    if (!json["attachments"].is_null()) {
+        // Parses favorited by data
+        for (const auto& user : json["favorited_by"]) {
+            UserSet::iterator itUser = users.find(user);
+            if (itUser != users.cend()) {
+                message.addFavorited(*itUser);
+            }
+        }
+
+        // Parses attachment data from the Json and constructs attachments accordingly
         for (const auto& attachment : json["attachments"]) {
             if (attachment["type"] == "image") {
-                message.attach(Attachment(web::uri(attachment["url"]), Attachment::Types::Picture));
+                message.attach(Attachment(web::uri(std::string(attachment["url"])), Attachment::Types::Picture));
             }
             else if (attachment["type"] == "file") {
                 message.attach(Attachment(std::string(attachment["file_id"]), Attachment::Types::File));
@@ -139,4 +155,12 @@ void Message::setSender(const std::shared_ptr<GroupMe::User>& sender) {
 
 void Message::addFavorited(const std::shared_ptr<GroupMe::User> &favoritedBy) {
     m_favoritedBy.push_back(favoritedBy);
+}
+
+Message::Type Message::getType() const {
+    return m_type;
+}
+
+void Message::setType(const Message::Type &type) {
+    m_type = type;
 }

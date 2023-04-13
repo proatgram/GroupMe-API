@@ -40,6 +40,12 @@ namespace GroupMe {
      */
     class Message {
         public:
+
+            enum class Type {
+                User,
+                System
+            };
+
             /**
              * This constructor should be used when you want to initialize a message
              * with some text. This constructor also has an optional parameter that
@@ -51,9 +57,10 @@ namespace GroupMe {
              * @param sender The user who sent this message as a `GroupMe::User` wrapped in a `std::shared_ptr`
              * @param message Message text you want to send
              * @param GUID The messages unique GUID
+             * @param type The type of message
              *
              */
-            Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& message, const std::string& GUID = "");
+            Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& message, const std::string& GUID = "", const Message::Type &type = Message::Type::User);
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -65,9 +72,10 @@ namespace GroupMe {
              *
              * @param message Message text you want to send
              * @param GUID The message unique GUID
+             * @param type The type of message
              *
              */
-            explicit Message(const std::string& message, const std::string& GUID = "");
+            explicit Message(const std::string& message, const std::string& GUID = "", const Message::Type &type = Message::Type::User);
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -79,9 +87,10 @@ namespace GroupMe {
              *
              * @param sender The user who sent this message as a `GroupMe::User` wrapped in a `std::shared_ptr`
              * @param GUID The message unique GUID
+             * @param type The type of message
              *
              */
-            explicit Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& GUID = "");
+            explicit Message(const std::shared_ptr<GroupMe::User> &sender, const std::string& GUID = "", const Message::Type &type = Message::Type::User);
 
             /**
              * This constructor should be used when you want to initialize a message
@@ -92,9 +101,10 @@ namespace GroupMe {
              * @brief Constructs a new `GroupMe::Message` object
              *
              * @param GUID The messages unique GUID
+             * @param type The type of message
              *
              */
-            explicit Message(const std::string& GUID = "");
+            explicit Message(const std::string& GUID = "", const Message::Type &type = Message::Type::User);
 
             /**
              * @brief Constructs a `GroupMe::Message` from a json.
@@ -194,6 +204,34 @@ namespace GroupMe {
              */
             void addFavorited(const std::shared_ptr<GroupMe::User> &favoritedBy);
 
+            /**
+             * @brief Gets the type of message
+             *
+             *  - System Message
+             *    - A user has left
+             *  - A User Message
+             *    - Normal message
+             *
+             *  @return Message::Type The type
+             *
+             */
+            Message::Type getType() const;
+
+            /**
+             * @brief Sets the type of message
+             *
+             *  - System Message
+             *    - A user has left
+             *  - A User Message
+             *    - Normal message
+             *
+             *  @param type The type
+             *
+             * @return void
+             *
+             */
+            void setType(const Message::Type &type);
+
         private:
             std::string m_id;
 
@@ -214,5 +252,7 @@ namespace GroupMe {
             std::vector<std::shared_ptr<GroupMe::User>> m_favoritedBy;
 
             std::string m_text;
+
+            Message::Type m_type;
     };
 }
