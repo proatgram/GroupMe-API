@@ -64,6 +64,18 @@ Message::Message(const std::string& GUID, const Type &type) :
 
 }
 
+// TODO: There are events associated with system messages, for example
+//  "event": {
+//      "type": "membership.notifications.exited",
+//      "data": {
+//          "removed_user": {
+//              "id": 71885510,
+//              "nickname": "Brooklynn"
+//          }
+//      }
+//  }
+//
+//  These are not well documented though
 Message Message::createFromJson(const nlohmann::json &json, const UserSet &users) {
     Message message;
 
@@ -81,6 +93,11 @@ Message Message::createFromJson(const nlohmann::json &json, const UserSet &users
     else {
         message.setType(Type::User);
         UserSet::iterator sender = users.find(json["sender_id"]);
+
+        if (!json["pinned_at"].is_null()) {
+            message.setPinnedAt(json["pinned_at"]);
+            
+        }
 
         if (sender != users.cend()) {
             message.setSender(*sender);
@@ -163,4 +180,12 @@ Message::Type Message::getType() const {
 
 void Message::setType(const Message::Type &type) {
     m_type = type;
+}
+
+unsigned long long int Message::getPinnedAt() const {
+    return m_pinnedAt;
+}
+
+void Message::setPinnedAt(unsigned long long int pinnedAt) {
+    m_pinnedAt = pinnedAt;
 }

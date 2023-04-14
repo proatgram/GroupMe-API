@@ -232,6 +232,24 @@ namespace GroupMe {
              */
             void setType(const Message::Type &type);
 
+            /**
+             * @brief Gets the date and time the message was pinned at
+             *
+             * @return unsigned long long int The date the message was pinned at
+             *
+             */
+            unsigned long long int getPinnedAt() const;
+
+            /**
+             * @brief Sets the date and time the message was pinned at
+             *
+             * @param pinnedAt The date the message was pinned at
+             *
+             * @return void
+             *
+             */
+            void setPinnedAt(unsigned long long int pinnedAt);
+
         private:
             std::string m_id;
 
