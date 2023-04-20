@@ -135,10 +135,10 @@ namespace GroupMe {
             /**
              * @brief Gets when the message was created at
              *
-             * @return unsigned int
+             * @return unsigned long long int
              *
              */
-            unsigned int getCreatedAt() const;
+            unsigned long long int getCreatedAt() const;
 
             /**
              * @brief Sets when the message was created at
@@ -146,7 +146,7 @@ namespace GroupMe {
              * @param createdAt The new time to set
              *
              */
-            void setCreatedAt(unsigned int createdAt);
+            void setCreatedAt(unsigned long long int createdAt);
 
             /**
              * @brief Gets the text attached to the message
@@ -255,11 +255,11 @@ namespace GroupMe {
 
             std::string m_guid;
 
-            unsigned int m_createdAt;
+            unsigned long long int m_createdAt;
 
             bool m_pinned;
 
-            unsigned int m_pinnedAt;
+            unsigned long long int m_pinnedAt;
 
             std::shared_ptr<GroupMe::User> m_pinnedBy;
 

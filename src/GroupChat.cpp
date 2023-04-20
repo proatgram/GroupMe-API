@@ -56,39 +56,39 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
     m_client.request(m_request).then([this](const web::http::http_response &response) -> void {
         auto group = nlohmann::json::parse(response.extract_string(true).get())["response"];
 
-        m_chatId = group["id"];
+        m_chatId = group.at("id");
 
-        m_groupName = group["name"];
+        m_groupName = group.at("name");
         
-        if (group["type"] == "private") {
+        if (group.at("type") == "private") {
             m_groupVisibility = VisibilityType::Private;
         }
-        else if (group["type"] == "public") {
+        else if (group.at("type") == "public") {
             m_groupVisibility = VisibilityType::Public;
         }
 
-        m_groupDescription = group["description"];
+        m_groupDescription = group.at("description");
 
-        m_createdAt = group["created_at"];
-        m_updatedAt = group["updated_at"];
+        m_createdAt = group.at("created_at");
+        m_updatedAt = group.at("updated_at");
 
         
         for (auto &member : group["members"]) {
             std::shared_ptr<User> user = std::make_shared<User>(
-                member["user_id"],
-                member["nickname"],
-                member["image_url"],
+                member.at("user_id"),
+                member.at("nickname"),
+                member.at("image_url"),
                 "",
                 "",
                 ""
             );
             m_groupMembers.insert(user);
-            m_memberGroupId.emplace(user, member["id"]);
+            m_memberGroupId.emplace(user, member.at("id"));
         }
 
-        m_groupShareUrl = group["share_url"];
+        m_groupShareUrl = group.at("share_url");
 
-        m_groupCreator = *m_groupMembers.find(group["creator_user_id"]);
+        m_groupCreator = *m_groupMembers.find(group.at("creator_user_id"));
     }).wait();
 }
 
@@ -195,7 +195,7 @@ pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
-            resultId = nlohmann::json::parse(response.extract_string(true).get())["response"]["result_id"];
+            resultId = nlohmann::json::parse(response.extract_string(true).get()).at("response").at("result_id");
             returnValue = true;
         }).wait();
 
@@ -223,7 +223,7 @@ pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
                         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
                         return;
                     }
-                    m_memberGroupId.emplace(sharedUser, nlohmann::json::parse(response.extract_string(true).get())["response"]["id"]);
+                    m_memberGroupId.emplace(sharedUser, nlohmann::json::parse(response.extract_string(true).get()).at("response").at("id"));
                     const auto [it, insert] = m_groupMembers.insert(sharedUser);
                     ready = true;
                 }).wait();
@@ -264,7 +264,7 @@ pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> 
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
-            resultId = nlohmann::json::parse(response.extract_string(true).get())["response"]["result_id"];
+            resultId = nlohmann::json::parse(response.extract_string(true).get()).at("response").at("result_id");
             returnValue = true;
         }).wait();
 
@@ -291,7 +291,7 @@ pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> 
                         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
                         return;
                     }
-                    m_memberGroupId.emplace(user, nlohmann::json::parse(response.extract_string(true).get())["response"]["id"]);
+                    m_memberGroupId.emplace(user, nlohmann::json::parse(response.extract_string(true).get()).at("response").at("id"));
                     const auto [it, insert] = m_groupMembers.insert(user);
                     ready = true;
                 }).wait();
@@ -392,13 +392,13 @@ pplx::task<bool> GroupChat::update() {
     return pplx::task<bool>([this]() {
         std::lock_guard<std::mutex> lock(m_mutex);
         nlohmann::json json;
-        json["name"] = m_groupName;
+        json.at("name") = m_groupName;
 
-        json["description"] = m_groupDescription;
+        json.at("description") = m_groupDescription;
 
-        json["image_url"] = m_groupImageUrl;
+        json.at("image_url") = m_groupImageUrl;
 
-        json["share"] = true;
+        json.at("share") = true;
 
         m_request.set_method(web::http::methods::POST);
 
@@ -419,42 +419,46 @@ pplx::task<bool> GroupChat::update() {
             }
             returnValue = true;
 
-            auto group = nlohmann::json::parse(response.extract_string(true).get())["response"];
+            nlohmann::json group = nlohmann::json::parse(response.extract_string(true).get()).at("response");
                 
-            m_chatId = group["id"];
+            m_chatId = group.at("id");
 
-            m_groupName = group["name"];
+            m_groupName = group.at("name");
             
-            if (group["type"] == "private") {
+            if (group.at("type") == "private") {
                 m_groupVisibility = VisibilityType::Private;
             }
-            else if (group["type"] == "public") {
+            else if (group.at("type") == "public") {
                 m_groupVisibility = VisibilityType::Public;
             }
 
-            m_groupDescription = group["description"];
+            m_groupDescription = group.at("description");
 
-            m_createdAt = group["created_at"];
-            m_updatedAt = group["updated_at"];
+            m_createdAt = group.at("created_at");
+            m_updatedAt = group.at("updated_at");
 
             m_groupShareUrl = group["share_url"];
             for (auto &member : group["members"]) {
                 std::shared_ptr<User> user = std::make_shared<User>(
-                    member["user_id"],
-                    member["nickname"],
-                    member["image_url"],
+                    member.at("user_id"),
+                    member.at("nickname"),
+                    member.at("image_url"),
                     "",
                     "",
                     ""
                 );
                 if (const auto [it, insert] = m_groupMembers.insert(user); insert) {
-                    m_memberGroupId.emplace(user, member["id"]);
+                    m_memberGroupId.emplace(user, member.at("id"));
                 }
             }
-            m_groupCreator = *m_groupMembers.find(group["creator_user_id"]);
+            m_groupCreator = *m_groupMembers.find(group.at("creator_user_id"));
         }).wait();
         return returnValue;
     });
+}
+
+const std::map<unsigned long long int, GroupMe::Message>& GroupChat::getMessages() const {
+    return std::as_const(m_messages);
 }
 
 pplx::task<bool> GroupChat::queryMessages(const Message &referenceMessage, BasicChat::QueryType queryType, unsigned int messageCount) {
@@ -494,11 +498,11 @@ pplx::task<bool> GroupChat::queryMessages(unsigned int messageCount) {
                 return;
             }
 
-            nlohmann::json json = nlohmann::json::parse(response.extract_string(true).get())["response"];
+            nlohmann::json json = nlohmann::json::parse(response.extract_string(true).get()).at("response");
 
-            for (const auto &message : json["messages"]) {
-                m_messages.push_back(Message::createFromJson(message, m_groupMembers));
-                std::cout << "Message: " << m_messages.at(m_messages.size() - 1).getText() << std::endl;
+            for (const auto &message : json.at("messages")) {
+                Message msg(Message::createFromJson(message, m_groupMembers));
+                m_messages.insert({msg.getCreatedAt(), msg});
             }
             returnValue = true;
         }).wait();
@@ -523,10 +527,11 @@ pplx::task<bool> GroupChat::queryMessagesBefore(const Message &beforeMessage, un
                 return;
             }
 
-            nlohmann::json json = nlohmann::json::parse(response.extract_string(true).get())["response"];
+            nlohmann::json json = nlohmann::json::parse(response.extract_string(true).get()).at("response");
 
-            for (const auto &message : json["messages"]) {
-                m_messages.push_back(Message::createFromJson(message, m_groupMembers));
+            for (const auto &message : json.at("messages")) {
+                Message msg(Message::createFromJson(message, m_groupMembers));
+                m_messages.insert({msg.getCreatedAt(), msg});
             }
             returnValue = true;
         }).wait();
@@ -550,6 +555,14 @@ pplx::task<bool> GroupChat::queryMessagesAfter(const Message &afterMessage, unsi
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
+            
+            nlohmann::json json = nlohmann::json::parse(response.extract_string(true).get()).at("response");
+
+            for (const auto &message : json.at("messages")) {
+                Message msg(Message::createFromJson(message, m_groupMembers));
+                m_messages.insert({msg.getCreatedAt(), msg});
+            }
+
             returnValue = true;
         }).wait();
         return returnValue;
@@ -572,6 +585,14 @@ pplx::task<bool> GroupChat::queryMessagesSince(const Message &sinceMessage, unsi
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
+
+            nlohmann::json json = nlohmann::json::parse(response.extract_string(true).get()).at("response");
+
+            for (const auto &message : json["messages"]) {
+                Message msg(Message::createFromJson(message, m_groupMembers));
+                m_messages.insert({msg.getCreatedAt(), msg});
+            }
+
             returnValue = true;
         }).wait();
         return returnValue;

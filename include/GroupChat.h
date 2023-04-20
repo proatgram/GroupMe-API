@@ -22,6 +22,7 @@
 #include <map>
 #include <thread>
 #include <chrono>
+#include <utility>
 #include <nlohmann/json.hpp>
 
 #include "BasicChat.h"
@@ -295,6 +296,14 @@ namespace GroupMe {
              *
              */
             pplx::task<bool> update();
+
+            /**
+             * @brief Returns the messages in the groupchat
+             *
+             * @return std::map<unsigned long long int, GroupMe::Message>
+             *
+             */
+            const std::map<unsigned long long int, GroupMe::Message>& getMessages() const;
 
             pplx::task<bool> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 

@@ -133,7 +133,7 @@ namespace GroupMe {
 
             unsigned long long int m_createdAt;
 
-            std::vector<GroupMe::Message> m_messages;
+            std::map<unsigned long long int, GroupMe::Message> m_messages;
             
             pplx::task<void> m_task;
 

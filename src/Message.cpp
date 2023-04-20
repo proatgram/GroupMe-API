@@ -138,11 +138,11 @@ void Message::setID(const std::string& id) {
     m_id = id;
 }
 
-unsigned int Message::getCreatedAt() const {
+unsigned long long int Message::getCreatedAt() const {
     return m_createdAt;
 }
 
-void Message::setCreatedAt(unsigned int createdAt) {
+void Message::setCreatedAt(unsigned long long int createdAt) {
     m_createdAt = createdAt;
 }
 
