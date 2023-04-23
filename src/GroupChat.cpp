@@ -54,7 +54,26 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
     m_client = web::http::client::http_client(builder.to_uri());
 
     m_client.request(m_request).then([this](const web::http::http_response &response) -> void {
-        auto group = nlohmann::json::parse(response.extract_string(true).get())["response"];
+        std::cout << response.to_string() << std::endl;
+        switch (response.status_code()) {
+            case web::http::status_codes::BadRequest: {
+                std::string errors;
+                const nlohmann::json errorsArray(nlohmann::json::parse(response.extract_string(true).get()).at("meta").at("errors"));
+                std::cout << errorsArray << std::endl;
+                for (const auto &error : errorsArray) {
+                    errors.append(error);
+                }
+                throw web::http::http_exception("400: " + errors);
+            }
+            case web::http::status_codes::NotFound: {
+                throw web::http::http_exception("404: Not Found");
+            }
+            case web::http::status_codes::Unauthorized: {
+                throw web::http::http_exception("401: Unauthorized");
+            }
+        }
+
+        nlohmann::json group = nlohmann::json::parse(response.extract_string(true).get()).at("response");
 
         m_chatId = group.at("id");
 
@@ -72,8 +91,7 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
         m_createdAt = group.at("created_at");
         m_updatedAt = group.at("updated_at");
 
-        
-        for (auto &member : group["members"]) {
+        for (auto &member : group.at("members")) {
             std::shared_ptr<User> user = std::make_shared<User>(
                 member.at("user_id"),
                 member.at("nickname"),
@@ -88,7 +106,28 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
 
         m_groupShareUrl = group.at("share_url");
 
-        m_groupCreator = *m_groupMembers.find(group.at("creator_user_id"));
+        UserSet::iterator creator = m_groupMembers.find(group.at("creator_user_id"));
+        if (creator != m_groupMembers.cend()) {
+            m_groupCreator = *creator;
+        }
+        else {
+            // If for some reason it can't find the creator in the members list
+            // (It should, but just to handle any problem that can arise) we create it
+            for (const auto &member : group.at("members")) {
+                if (member.at("user_id") == group.at("creator_user_id")) {
+                    m_groupCreator = std::make_shared<GroupMe::User>(
+                        member.at("user_id"),
+                        member.at("nickname"),
+                        member.at("image_url"),
+                        "",
+                        "",
+                        ""
+                    );
+                    m_groupMembers.insert(m_groupCreator);
+                    m_memberGroupId.emplace(m_groupCreator, m_groupCreator->getID());
+                }
+            }
+        }
     }).wait();
 }
 
@@ -492,6 +531,7 @@ pplx::task<bool> GroupChat::queryMessages(unsigned int messageCount) {
 
     m_client = web::http::client::http_client(builder.to_uri());
     return pplx::task<bool>([this]() -> bool {
+        std::lock_guard<std::mutex> lock(m_mutex);
         bool returnValue = false;
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
@@ -521,6 +561,7 @@ pplx::task<bool> GroupChat::queryMessagesBefore(const Message &beforeMessage, un
 
     m_client = web::http::client::http_client(builder.to_uri());
     return pplx::task<bool>([this]() -> bool {
+        std::lock_guard<std::mutex> lock(m_mutex);
         bool returnValue = false;
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
@@ -550,6 +591,7 @@ pplx::task<bool> GroupChat::queryMessagesAfter(const Message &afterMessage, unsi
 
     m_client = web::http::client::http_client(builder.to_uri());
     return pplx::task<bool>([this]() -> bool {
+        std::lock_guard<std::mutex> lock(m_mutex);
         bool returnValue = false;
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
@@ -580,6 +622,7 @@ pplx::task<bool> GroupChat::queryMessagesSince(const Message &sinceMessage, unsi
 
     m_client = web::http::client::http_client(builder.to_uri());
     return pplx::task<bool>([this]() -> bool {
+        std::lock_guard<std::mutex> lock(m_mutex);
         bool returnValue = false;
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
