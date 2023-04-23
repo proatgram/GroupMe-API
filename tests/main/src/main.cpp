@@ -23,7 +23,7 @@
 #include "GroupChat.h"
 
 int main(int argc, char** argv) {
-    GroupMe::GroupChat chat("", "");
+    GroupMe::GroupChat chat("Fax554EcZGeoFj162ErllNEjCSJcqjfnnigRvyua", "12");
 
     chat.queryMessages().wait();
 
