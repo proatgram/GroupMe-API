@@ -46,6 +46,17 @@ User::User() :
 
 }
 
+User User::createFromJson(const nlohmann::json &json) {
+    User user;
+
+    user.setID(json.at("user_id"));
+    user.setNickname(json.value("nickname", ""));
+    user.setProfileImageURL(json.value("image_url", ""));
+    user.setGUID(json.value("guid", ""));
+
+    return user;
+}
+
 std::string User::getID() const {
     return m_userID;
 }
