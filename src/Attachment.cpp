@@ -23,7 +23,6 @@ using namespace GroupMe;
 Attachment::Attachment(const std::filesystem::path& contentPath, const Attachment::Types& type, const std::string& accessToken) :
     m_type(type),
     m_contentPath(contentPath),
-    m_content(),
     m_accessToken(accessToken)
 {
 
@@ -31,8 +30,6 @@ Attachment::Attachment(const std::filesystem::path& contentPath, const Attachmen
 
 Attachment::Attachment(const std::vector<unsigned char>& contentBinary, const Attachment::Types& type, const std::string& accessToken) :
     m_type(type),
-    m_contentPath(),
-    m_content(),
     m_contentBinary(contentBinary),
     m_accessToken(accessToken)
 {
@@ -41,10 +38,22 @@ Attachment::Attachment(const std::vector<unsigned char>& contentBinary, const At
 
 Attachment::Attachment(const web::uri& contentURL, const Attachment::Types& type, const std::string& accessToken) :
     m_type(type),
-    m_contentPath(),
     m_content(contentURL.to_string()),
-    m_contentBinary(),
     m_accessToken(accessToken)
+{
+
+}
+
+Attachment::Attachment(const web::uri &contentURL, const Attachment::Types &type) :
+    m_type(type),
+    m_content(contentURL.to_string())
+{
+
+}
+
+Attachment::Attachment(const std::string &content, const Attachment::Types &type) :
+    m_type(type),
+    m_content(content)
 {
 
 }
@@ -55,4 +64,8 @@ Attachment::Types Attachment::getType() {
 
 web::uri Attachment::getContentURL() {
     return m_content;
+}
+
+void Attachment::setContentURL(const web::uri &url) {
+    m_content = url.to_string();
 }
