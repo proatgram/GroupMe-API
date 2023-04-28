@@ -220,50 +220,50 @@ namespace GroupMe {
              *
              * @param user The user to add to the group as a `GroupMe::User`
              *
-             * @return pplx::task<bool> true if succeeded and false if not
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
              */
-            pplx::task<bool> addGroupMember(const GroupMe::User &user);
+            pplx::task<BasicChat::Result> addGroupMember(const GroupMe::User &user);
 
             /**
              * @brief Adds a member to the group
              *
              * @param user The user to add to the group as encapsulated in a `std::shared_ptr<GroupMe::User>`
              *
-             * @return pplx::task<bool> true if succeeded and false if not
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
              */
-            pplx::task<bool> addGroupMember(const std::shared_ptr<GroupMe::User> &user);
+            pplx::task<BasicChat::Result> addGroupMember(const std::shared_ptr<GroupMe::User> &user);
 
             /**
              * @brief Removes a member from the group
              *
              * @param user The user to remvoe from the group as a `GroupMe::User`
              *
-             * @return pplx::task<bool> true if succeeded and false if not
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
              */
-            pplx::task<bool> removeGroupMember(const GroupMe::User &user);
+            pplx::task<BasicChat::Result> removeGroupMember(const GroupMe::User &user);
 
             /**
              * @brief Removes a member from the group
              *
              * @param user The user to remove from the group encapsulated in a `std::shared_ptr<GroupMe::User>`
              *
-             * @return pplx::task<bool> true if succeeded and false if not
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
              */
-            pplx::task<bool> removeGroupMember(const std::shared_ptr<GroupMe::User> &user);
+            pplx::task<BasicChat::Result> removeGroupMember(const std::shared_ptr<GroupMe::User> &user);
 
             /**
              * @brief Disbands / destroys a group
              *
              * This action is only available to the group creator
              *
-             * @return pplx::task<bool> true if succeeded and false if not
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
              */
-            pplx::task<bool> destroyGroup();
+            pplx::task<BasicChat::Result> destroyGroup();
 
             /**
              * @brief Change the owner of the group
@@ -272,10 +272,10 @@ namespace GroupMe {
              *
              * @param user The new owner to set as a `GroupMe::User`
              *
-             * @return pplx::task<bool> true if succeeded and false if not
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
              */
-            pplx::task<bool> changeGroupOwner(const GroupMe::User &user);
+            pplx::task<BasicChat::Result> changeGroupOwner(const GroupMe::User &user);
 
             /**
              * @brief Change the owner of the group
@@ -284,10 +284,10 @@ namespace GroupMe {
              *
              * @param user The new owner to set as a `std::shared_ptr<GroupMe::User>`
              *
-             * @return pplx::task<bool> true if succeeded and false if not
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
              */
-            pplx::task<bool> changeGroupOwner(const std::shared_ptr<GroupMe::User> &user);
+            pplx::task<BasicChat::Result> changeGroupOwner(const std::shared_ptr<GroupMe::User> &user);
 
             /**
              * @brief Updates a group after creation
@@ -295,7 +295,7 @@ namespace GroupMe {
              * @return bool true if succeeded and false if not
              *
              */
-            pplx::task<bool> update();
+            pplx::task<BasicChat::Result> update();
 
             /**
              * @brief Returns the messages in the groupchat
@@ -305,16 +305,16 @@ namespace GroupMe {
              */
             const std::map<unsigned long long int, GroupMe::Message>& getMessages() const;
 
-            pplx::task<bool> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
-            pplx::task<bool> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
         private:
-            pplx::task<bool> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
-            pplx::task<bool> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
-            pplx::task<bool> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
             web::uri m_endpointUrl;
 

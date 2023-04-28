@@ -115,14 +115,7 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
             // (It should, but just to handle any problem that can arise) we create it
             for (const auto &member : group.at("members")) {
                 if (member.at("user_id") == group.at("creator_user_id")) {
-                    m_groupCreator = std::make_shared<GroupMe::User>(
-                        member.at("user_id"),
-                        member.at("nickname"),
-                        member.at("image_url"),
-                        "",
-                        "",
-                        ""
-                    );
+                    m_groupCreator = std::make_shared<User>(User::createFromJson(member));
                     m_groupMembers.insert(m_groupCreator);
                     m_memberGroupId.emplace(m_groupCreator, m_groupCreator->getID());
                 }
@@ -203,8 +196,8 @@ const GroupMe::UserSet& GroupChat::getGroupMembers() const {
     return m_groupMembers;
 }
 
-pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
-    return pplx::task<bool>([this, user]() {
+pplx::task<BasicChat::Result> GroupChat::addGroupMember(const GroupMe::User &user) {
+    return pplx::task<BasicChat::Result>([this, user]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         m_request.set_method(web::http::methods::POST);
@@ -226,7 +219,7 @@ pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
 
         m_request.set_body(body.dump());
 
-        bool returnValue = false;
+        BasicChat::Result returnValue = BasicChat::Result::Failure;
 
         std::string resultId;
 
@@ -234,11 +227,12 @@ pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
+
             resultId = nlohmann::json::parse(response.extract_string(true).get()).at("response").at("result_id");
-            returnValue = true;
+            returnValue = BasicChat::Result::Success;
         }).wait();
 
-        if (returnValue) {
+        if (returnValue != BasicChat::Result::Failure) {
             m_request.set_method(web::http::methods::GET);
 
             builder = web::http::uri_builder(m_endpointUrl);
@@ -248,23 +242,25 @@ pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
 
             m_client = web::http::client::http_client(builder.to_uri());
 
-            bool ready = false;
-            bool resultsNotAvalliable = false;
-            std::shared_ptr<User> sharedUser = std::make_shared<User>(user);
-            while (!ready) {
-                m_client.request(m_request).then([this, &ready, &resultsNotAvalliable, &sharedUser](const web::http::http_response &response) -> void {
-                    if (response.status_code() == web::http::status_codes::NotFound) {
-                        ready = true;
-                        resultsNotAvalliable = true;
-                        return;
+            while (returnValue != BasicChat::Result::ResultsExpired || returnValue != BasicChat::Result::Success) {
+                m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+                    switch (response.status_code()) {
+                        case web::http::status_codes::NotFound: {
+                            returnValue = BasicChat::Result::ResultsExpired;
+                        }
+                        case web::http::status_codes::ServiceUnavailable: {
+                            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+                            return;
+                        }
+                        default: {
+                            returnValue = BasicChat::Result::Failure;
+                        }
                     }
-                    if (response.status_code() == web::http::status_codes::ServiceUnavailable) {
-                        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-                        return;
-                    }
-                    m_memberGroupId.emplace(sharedUser, nlohmann::json::parse(response.extract_string(true).get()).at("response").at("id"));
+                    nlohmann::json userJson = nlohmann::json::parse(response.extract_string(true).get()).at("response").at("members").at(0);
+                    std::shared_ptr<User> sharedUser(std::make_shared<User>(User::createFromJson(userJson)));
+                    m_memberGroupId.emplace(sharedUser, sharedUser->getID());
                     const auto [it, insert] = m_groupMembers.insert(sharedUser);
-                    ready = true;
+                    returnValue = BasicChat::Result::Success;
                 }).wait();
             }
         }
@@ -272,8 +268,8 @@ pplx::task<bool> GroupChat::addGroupMember(const GroupMe::User &user) {
     });
 }
 
-pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> &user) {
-    return pplx::task<bool>([this, user]() -> bool {
+pplx::task<BasicChat::Result> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> &user) {
+    return pplx::task<BasicChat::Result>([this, user]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         m_request.set_method(web::http::methods::POST);
@@ -295,7 +291,7 @@ pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> 
 
         m_request.set_body(body.dump());
 
-        bool returnValue = false;
+        BasicChat::Result returnValue = BasicChat::Result::Failure;
 
         std::string resultId;
 
@@ -304,10 +300,10 @@ pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> 
                 return;
             }
             resultId = nlohmann::json::parse(response.extract_string(true).get()).at("response").at("result_id");
-            returnValue = true;
+            returnValue = BasicChat::Result::Success;
         }).wait();
 
-        if (returnValue) {
+        if (returnValue != BasicChat::Result::Failure) {
             m_request.set_method(web::http::methods::GET);
 
             builder = web::http::uri_builder(m_endpointUrl);
@@ -319,20 +315,25 @@ pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> 
 
             bool ready = false;
             bool resultsNotAvalliable = false;
-            while (!ready) {
-                m_client.request(m_request).then([this, &ready, &resultsNotAvalliable, &user](const web::http::http_response &response) -> void {
-                    if (response.status_code() == web::http::status_codes::NotFound) {
-                        ready = true;
-                        resultsNotAvalliable = true;
-                        return;
+            while (returnValue != BasicChat::Result::ResultsExpired || returnValue != BasicChat::Result::Success) {
+                m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+                    switch (response.status_code()) {
+                        case web::http::status_codes::NotFound: {
+                            returnValue = BasicChat::Result::ResultsExpired;
+                        }
+                        case web::http::status_codes::ServiceUnavailable: {
+                            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+                            return;
+                        }
+                        default: {
+                            returnValue = BasicChat::Result::Failure;
+                        }
                     }
-                    if (response.status_code() == web::http::status_codes::ServiceUnavailable) {
-                        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-                        return;
-                    }
-                    m_memberGroupId.emplace(user, nlohmann::json::parse(response.extract_string(true).get()).at("response").at("id"));
-                    const auto [it, insert] = m_groupMembers.insert(user);
-                    ready = true;
+                    nlohmann::json userJson = nlohmann::json::parse(response.extract_string(true).get()).at("response").at("members").at(0);
+                    std::shared_ptr<User> sharedUser(std::make_shared<User>(User::createFromJson(userJson)));
+                    m_memberGroupId.emplace(sharedUser, sharedUser->getID());
+                    const auto [it, insert] = m_groupMembers.insert(sharedUser);
+                    returnValue = BasicChat::Result::Success;
                 }).wait();
             }
         }
@@ -340,8 +341,8 @@ pplx::task<bool> GroupChat::addGroupMember(const std::shared_ptr<GroupMe::User> 
     });
 }
 
-pplx::task<bool> GroupChat::removeGroupMember(const GroupMe::User &user) {
-    return pplx::task<bool>([this, user]() -> bool {
+pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const GroupMe::User &user) {
+    return pplx::task<BasicChat::Result>([this, user]() -> BasicChat::Result {
             std::lock_guard<std::mutex> lock(m_mutex);
 
             std::shared_ptr<User> sharedUser = std::make_shared<User>(user);
@@ -357,23 +358,30 @@ pplx::task<bool> GroupChat::removeGroupMember(const GroupMe::User &user) {
 
             m_client = web::http::client::http_client(builder.to_uri());
 
-            bool returnValue = false;
+            BasicChat::Result returnValue = BasicChat::Result::Failure;
 
             m_client.request(m_request).then([this, &returnValue, &sharedUser](const web::http::http_response &response) -> void {
-                if (response.status_code() != web::http::status_codes::OK) {
-                    m_groupMembers.erase(sharedUser);
-                    m_memberGroupId.erase(sharedUser);
-                    return;
+                switch (response.status_code()) {
+                    case web::http::status_codes::NotFound: {
+                        returnValue = BasicChat::Result::NotFound;
+                        return;
+                    }
+                    default: {
+                        return;
+                    }
                 }
-                returnValue = true;
+
+                m_groupMembers.erase(sharedUser);
+                m_memberGroupId.erase(sharedUser);
+                returnValue = BasicChat::Result::Success;
             }).wait();
 
             return returnValue;
     });
 }
 
-pplx::task<bool> GroupChat::removeGroupMember(const std::shared_ptr<GroupMe::User> &user) {
-    return pplx::task<bool>([this, user]() -> bool {
+pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const std::shared_ptr<GroupMe::User> &user) {
+    return pplx::task<BasicChat::Result>([this, user]() -> BasicChat::Result {
             std::lock_guard<std::mutex> lock(m_mutex);
 
             web::http::uri_builder builder(m_endpointUrl);
@@ -387,23 +395,30 @@ pplx::task<bool> GroupChat::removeGroupMember(const std::shared_ptr<GroupMe::Use
 
             m_client = web::http::client::http_client(builder.to_uri());
 
-            bool returnValue = false;
+            BasicChat::Result returnValue = BasicChat::Result::Failure;
 
             m_client.request(m_request).then([this, &returnValue, &user](const web::http::http_response &response) -> void {
-                if (response.status_code() != web::http::status_codes::OK) {
-                    m_groupMembers.erase(user);
-                    m_memberGroupId.erase(user);
-                    return;
+                switch (response.status_code()) {
+                    case web::http::status_codes::NotFound: {
+                        returnValue = BasicChat::Result::NotFound;
+                        return;
+                    }
+                    default: {
+                        return;
+                    }
                 }
-                returnValue = true;
+
+                m_groupMembers.erase(user);
+                m_memberGroupId.erase(user);
+                returnValue = BasicChat::Result::Success;
             }).wait();
 
             return returnValue;
     });
 }
 
-pplx::task<bool> GroupChat::destroyGroup() {
-    return pplx::task<bool>([this]() -> bool {
+pplx::task<BasicChat::Result> GroupChat::destroyGroup() {
+    return pplx::task<BasicChat::Result>([this]() -> BasicChat::Result {
             std::lock_guard<std::mutex> lock(m_mutex);
 
             web::http::uri_builder builder(m_endpointUrl);
@@ -415,20 +430,20 @@ pplx::task<bool> GroupChat::destroyGroup() {
 
             m_client = web::http::client::http_client(builder.to_uri());
 
-            bool returnValue = false;
+            BasicChat::Result returnValue = BasicChat::Result::Failure;
 
             m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
                 if (response.status_code() != web::http::status_codes::OK) {
                     return;
                 }
-                returnValue = true;
+                returnValue = BasicChat::Result::Success;
             }).wait();
             return returnValue;
     });
 }
 
-pplx::task<bool> GroupChat::update() {
-    return pplx::task<bool>([this]() {
+pplx::task<BasicChat::Result> GroupChat::update() {
+    return pplx::task<BasicChat::Result>([this]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
         nlohmann::json json;
         json.at("name") = m_groupName;
@@ -450,13 +465,13 @@ pplx::task<bool> GroupChat::update() {
 
         m_request.set_body(json.dump());
 
-        bool returnValue = false;
+        BasicChat::Result returnValue = BasicChat::Result::Failure;
 
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
-            returnValue = true;
+            returnValue = BasicChat::Result::Success;
 
             nlohmann::json group = nlohmann::json::parse(response.extract_string(true).get()).at("response");
                 
@@ -500,7 +515,7 @@ const std::map<unsigned long long int, GroupMe::Message>& GroupChat::getMessages
     return std::as_const(m_messages);
 }
 
-pplx::task<bool> GroupChat::queryMessages(const Message &referenceMessage, BasicChat::QueryType queryType, unsigned int messageCount) {
+pplx::task<BasicChat::Result> GroupChat::queryMessages(const Message &referenceMessage, BasicChat::QueryType queryType, unsigned int messageCount) {
     m_request.set_method(web::http::methods::GET);
 
     web::http::uri_builder builder(m_endpointUrl);
@@ -516,12 +531,12 @@ pplx::task<bool> GroupChat::queryMessages(const Message &referenceMessage, Basic
             return queryMessagesSince(referenceMessage, messageCount);
         }
         default: {
-            return pplx::task<bool>([]() -> bool { return false; });
+            return pplx::task<BasicChat::Result>([]() -> BasicChat::Result { return BasicChat::Result::InvalidQueryType; });
         }
     }
 }
 
-pplx::task<bool> GroupChat::queryMessages(unsigned int messageCount) {
+pplx::task<BasicChat::Result> GroupChat::queryMessages(unsigned int messageCount) {
     web::http::uri_builder builder(m_endpointUrl);
 
     builder.append_path(m_chatId);
@@ -530,9 +545,9 @@ pplx::task<bool> GroupChat::queryMessages(unsigned int messageCount) {
     builder.append_query("limit", messageCount);
 
     m_client = web::http::client::http_client(builder.to_uri());
-    return pplx::task<bool>([this]() -> bool {
+    return pplx::task<BasicChat::Result>([this]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
-        bool returnValue = false;
+        BasicChat::Result returnValue = BasicChat::Result::Failure;
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
@@ -544,13 +559,13 @@ pplx::task<bool> GroupChat::queryMessages(unsigned int messageCount) {
                 Message msg(Message::createFromJson(message, m_groupMembers));
                 m_messages.insert({msg.getCreatedAt(), msg});
             }
-            returnValue = true;
+            returnValue = BasicChat::Result::Success;
         }).wait();
         return returnValue;
     });
 }
 
-pplx::task<bool> GroupChat::queryMessagesBefore(const Message &beforeMessage, unsigned int messageCount) {
+pplx::task<BasicChat::Result> GroupChat::queryMessagesBefore(const Message &beforeMessage, unsigned int messageCount) {
     web::http::uri_builder builder(m_endpointUrl);
 
     builder.append_path(m_chatId);
@@ -560,9 +575,9 @@ pplx::task<bool> GroupChat::queryMessagesBefore(const Message &beforeMessage, un
     builder.append_query("limit", messageCount);
 
     m_client = web::http::client::http_client(builder.to_uri());
-    return pplx::task<bool>([this]() -> bool {
+    return pplx::task<BasicChat::Result>([this]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
-        bool returnValue = false;
+        BasicChat::Result returnValue = BasicChat::Result::Failure;
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
@@ -574,13 +589,13 @@ pplx::task<bool> GroupChat::queryMessagesBefore(const Message &beforeMessage, un
                 Message msg(Message::createFromJson(message, m_groupMembers));
                 m_messages.insert({msg.getCreatedAt(), msg});
             }
-            returnValue = true;
+            returnValue = BasicChat::Result::Success;
         }).wait();
         return returnValue;
     });
 }
 
-pplx::task<bool> GroupChat::queryMessagesAfter(const Message &afterMessage, unsigned int messageCount) {
+pplx::task<BasicChat::Result> GroupChat::queryMessagesAfter(const Message &afterMessage, unsigned int messageCount) {
     web::http::uri_builder builder(m_endpointUrl);
 
     builder.append_path(m_chatId);
@@ -590,9 +605,9 @@ pplx::task<bool> GroupChat::queryMessagesAfter(const Message &afterMessage, unsi
     builder.append_query("limit", messageCount);
 
     m_client = web::http::client::http_client(builder.to_uri());
-    return pplx::task<bool>([this]() -> bool {
+    return pplx::task<BasicChat::Result>([this]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
-        bool returnValue = false;
+        BasicChat::Result returnValue = BasicChat::Result::Failure;
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
@@ -605,13 +620,13 @@ pplx::task<bool> GroupChat::queryMessagesAfter(const Message &afterMessage, unsi
                 m_messages.insert({msg.getCreatedAt(), msg});
             }
 
-            returnValue = true;
+            returnValue = BasicChat::Result::Success;
         }).wait();
         return returnValue;
     });
 }
 
-pplx::task<bool> GroupChat::queryMessagesSince(const Message &sinceMessage, unsigned int messageCount) {
+pplx::task<BasicChat::Result> GroupChat::queryMessagesSince(const Message &sinceMessage, unsigned int messageCount) {
     web::http::uri_builder builder(m_endpointUrl);
 
     builder.append_path(m_chatId);
@@ -621,9 +636,9 @@ pplx::task<bool> GroupChat::queryMessagesSince(const Message &sinceMessage, unsi
     builder.append_query("limit", messageCount);
 
     m_client = web::http::client::http_client(builder.to_uri());
-    return pplx::task<bool>([this]() -> bool {
+    return pplx::task<BasicChat::Result>([this]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
-        bool returnValue = false;
+        BasicChat::Result returnValue = BasicChat::Result::Failure;
         m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
@@ -636,7 +651,7 @@ pplx::task<bool> GroupChat::queryMessagesSince(const Message &sinceMessage, unsi
                 m_messages.insert({msg.getCreatedAt(), msg});
             }
 
-            returnValue = true;
+            returnValue = BasicChat::Result::Success;
         }).wait();
         return returnValue;
     });

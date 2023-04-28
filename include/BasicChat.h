@@ -43,6 +43,18 @@ namespace GroupMe {
             };
 
             /**
+             * @brief Represents different results for Chat operations
+             *
+             */
+            enum class Result {
+                Success,
+                Failure,
+                ResultsExpired,
+                NotFound,
+                InvalidQueryType
+            };
+
+            /**
              * The default message query amount if not specified
              * in the web request is 20
              *
@@ -117,19 +129,19 @@ namespace GroupMe {
              *
              * @param messageCount The count of messages that will be queried. The default is 20 if none is supplied.
              *
-             * @return bool true if it succeeded and false if it didn't
+             * @return BasicChat::Result The result of the operation
              *
              */
-            virtual pplx::task<bool> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<BasicChat::Result> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
-            virtual pplx::task<bool> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
         protected:
-            virtual pplx::task<bool> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<BasicChat::Result> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
-            virtual pplx::task<bool> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<BasicChat::Result> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
-            virtual pplx::task<bool> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
+            virtual pplx::task<BasicChat::Result> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
             unsigned long long int m_createdAt;
 
