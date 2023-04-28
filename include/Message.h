@@ -113,6 +113,8 @@ namespace GroupMe {
              *
              * @param users The users that are the group that the message was sent in
              *
+             * @return Message a new message
+             *
              */
             static Message createFromJson(const nlohmann::json &json, const GroupMe::UserSet &user);
 

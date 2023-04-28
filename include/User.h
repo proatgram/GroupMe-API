@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <string>
 #include <memory>
+#include <nlohmann/json.hpp>
 
 namespace GroupMe {
     /**
@@ -60,6 +61,31 @@ namespace GroupMe {
              *
              */
             User();
+
+            /**
+             * @brief Constructs a `GroupMe::User` from a json
+             * 
+             * @param json The json that the user is represented by
+             * The json must have **_at least_** a `user_id`, but can have more.
+             * If an option is not specified it will be defaulted.
+             *
+             * A user json can look similar to:
+             * ```
+             * {
+             *      "id": "2000",
+             *      "user_id": "20000",
+             *      "nickname": "Anne",
+             *      "muted": false,
+             *      "image_url": "https://i.groupme.com/AVATAR",
+             *      "autokicked": false,
+             *      "app_installed": true,
+             *      "guid": "GUID-2"
+             * }
+             * ```
+             *
+             * @return User a new user
+             */
+            static User createFromJson(const nlohmann::json &json);
 
             /**
              * @brief Gets the users ID
