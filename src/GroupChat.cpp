@@ -343,7 +343,12 @@ pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const GroupMe::User &
 
             builder.append_path(m_chatId);
             builder.append_path("members");
-            builder.append_path(m_memberGroupId.at(sharedUser));
+            try {
+                builder.append_path(m_memberGroupId.at(sharedUser));
+            }
+            catch (const std::exception &e) {
+                return BasicChat::Result::NotFound;
+            }
             builder.append_path("remove");
 
             m_request.set_method(web::http::methods::POST);
@@ -354,6 +359,10 @@ pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const GroupMe::User &
 
             m_client.request(m_request).then([this, &returnValue, &sharedUser](const web::http::http_response &response) -> void {
                 switch (response.status_code()) {
+                    case web::http::status_codes::OK: {
+                        returnValue = BasicChat::Result::Success;
+                        return;
+                    }
                     case web::http::status_codes::NotFound: {
                         returnValue = BasicChat::Result::NotFound;
                         return;
@@ -380,7 +389,12 @@ pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const std::shared_ptr
 
             builder.append_path(m_chatId);
             builder.append_path("members");
-            builder.append_path(m_memberGroupId.at(user));
+            try {
+                builder.append_path(m_memberGroupId.at(user));
+            }
+            catch (const std::exception &e) {
+                return BasicChat::Result::NotFound;
+            }
             builder.append_path("remove");
 
             m_request.set_method(web::http::methods::POST);
@@ -485,14 +499,7 @@ pplx::task<BasicChat::Result> GroupChat::update() {
 
             m_groupShareUrl = group["share_url"];
             for (auto &member : group["members"]) {
-                std::shared_ptr<User> user = std::make_shared<User>(
-                    member.at("user_id"),
-                    member.at("nickname"),
-                    member.at("image_url"),
-                    "",
-                    "",
-                    ""
-                );
+                std::shared_ptr<User> user = std::make_shared<User>(User::createFromJson(member));
                 if (const auto [it, insert] = m_groupMembers.insert(user); insert) {
                     m_memberGroupId.emplace(user, member.at("id"));
                 }
