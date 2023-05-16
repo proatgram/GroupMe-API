@@ -448,17 +448,86 @@ pplx::task<BasicChat::Result> GroupChat::destroyGroup() {
     });
 }
 
+pplx::task<BasicChat::Result> GroupChat::changeGroupOwner(const User &user) {
+    return pplx::task<BasicChat::Result>([this, user]() -> BasicChat::Result {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        
+        nlohmann::json json;
+        
+        json["requests"][0]["group_id"] = m_chatId;
+        json["requests"][0]["owner_id"] = user.getID();
+
+        m_request.set_method(web::http::methods::POST);
+
+        web::uri_builder builder(m_endpointUrl);
+
+        builder.append_path("change_owners");
+
+        m_client = web::http::client::http_client(builder.to_uri());
+
+        m_request.set_body(json.dump());
+
+        BasicChat::Result returnValue = BasicChat::Result::Failure;
+
+        m_client.request(m_request).then([this, &returnValue](const web::http::http_response &response) -> void {
+                std::cout << response.to_string() << std::endl;
+                nlohmann::json responseJson = nlohmann::json::parse(response.extract_string(true).get()).at("response");
+                std::cout << "test8" << std::endl;
+                std::string responseCode = responseJson.at("results").at(0).at("status");
+                std::cout << "test7" << std::endl;
+            if (responseCode == "200") {
+                std::cout << "test6" << std::endl;
+                UserSet::iterator newOwnerIt = m_groupMembers.find(responseJson.at("results").at(0).at("owner_id"));
+                std::cout << "test5" << std::endl;
+                if (newOwnerIt != getGroupMembers().end()) {
+                std::cout << "test4" << std::endl;
+                    returnValue = BasicChat::Result::Success;
+                    m_groupCreator = *newOwnerIt;
+                std::cout << "test3" << std::endl;
+                }
+                else {
+                std::cout << "test2" << std::endl;
+                    returnValue = BasicChat::Result::NotFound;
+                }
+                std::cout << "test1" << std::endl;
+                return;
+            }
+            else if (responseCode == "400") {
+                returnValue = BasicChat::Result::RequesterIsNewOwner;
+                return;
+            }
+            else if (responseCode == "403") {
+                returnValue = BasicChat::Result::RequesterIsNotOwner;
+                return;
+            }
+            else if (responseCode == "404") {
+                returnValue = BasicChat::Result::NotFound;
+                return;
+            }
+            else if (responseCode == "405") {
+                returnValue = BasicChat::Result::MissingData;
+                return;
+            }
+            else {
+                return;
+            }
+        }).wait();
+        m_request.set_body("");
+        return returnValue;
+    });
+}
+
 pplx::task<BasicChat::Result> GroupChat::update() {
     return pplx::task<BasicChat::Result>([this]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
         nlohmann::json json;
-        json.at("name") = m_groupName;
+        json["name"] = m_groupName;
 
-        json.at("description") = m_groupDescription;
+        json["description"] = m_groupDescription;
 
-        json.at("image_url") = m_groupImageUrl;
+        json["image_url"] = m_groupImageUrl;
 
-        json.at("share") = true;
+        json["share"] = true;
 
         m_request.set_method(web::http::methods::POST);
 
@@ -506,6 +575,7 @@ pplx::task<BasicChat::Result> GroupChat::update() {
             }
             m_groupCreator = *m_groupMembers.find(group.at("creator_user_id"));
         }).wait();
+        m_request.set_body("");
         return returnValue;
     });
 }

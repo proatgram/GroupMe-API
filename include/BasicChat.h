@@ -51,7 +51,10 @@ namespace GroupMe {
                 Failure,
                 ResultsExpired,
                 NotFound,
-                InvalidQueryType
+                InvalidQueryType,
+                RequesterIsNewOwner,
+                RequesterIsNotOwner,
+                MissingData
             };
 
             /**
