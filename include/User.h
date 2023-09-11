@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <string>
 #include <memory>
+#include <optional>
 #include <nlohmann/json.hpp>
 
 namespace GroupMe {
@@ -69,6 +70,10 @@ namespace GroupMe {
              * The json must have **_at least_** a `user_id`, but can have more.
              * If an option is not specified it will be defaulted.
              *
+             * @param groupId An optional groupId used to populate
+             * the users User Group IDs, which are User ID's specific
+             * and unique to each Group Chat the user is in.
+             *
              * A user json can look similar to:
              * ```
              * {
@@ -85,7 +90,7 @@ namespace GroupMe {
              *
              * @return User a new user
              */
-            static User createFromJson(const nlohmann::json &json);
+            static User createFromJson(const nlohmann::json &json, const std::string &groupId = {});
 
             /**
              * @brief Gets the users ID
@@ -329,6 +334,16 @@ namespace GroupMe {
              */
             void setTwitterConnected(bool twitterConnected);
 
+            /**
+             * @brief Gets the User ID for this user in the Group
+             *
+             * @param std::string The Group ID
+             *
+             * @return std::optional<std::string>
+             *
+             */
+            std::optional<std::string> getUserGroupId(const std::string &groupId) const;
+
             bool operator==(const User& user) const;
 
             bool operator!=(const User& user) const;
@@ -424,5 +439,12 @@ namespace GroupMe {
              *
              */
             bool m_isTwitterConnected;
+
+            /**
+             * @brief A map containing the users GroupIDs for
+             * each of the GroupChats they are in.
+             *
+             */
+            std::map<std::string, std::string> m_groupIds;
     };
 }

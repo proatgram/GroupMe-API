@@ -90,9 +90,8 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
         m_updatedAt = group.at("updated_at");
 
         for (auto &member : group.at("members")) {
-            std::shared_ptr<User> user = std::make_shared<User>(User::createFromJson(member));
+            std::shared_ptr<User> user = std::make_shared<User>(User::createFromJson(member, m_chatId));
             m_groupMembers.insert(user);
-            m_memberGroupId.emplace(user, member.at("id"));
         }
 
         m_groupShareUrl = group.at("share_url");
@@ -106,9 +105,8 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
             // (It should, but just to handle any problem that can arise) we create it
             for (const auto &member : group.at("members")) {
                 if (member.at("user_id") == group.at("creator_user_id")) {
-                    m_groupCreator = std::make_shared<User>(User::createFromJson(member));
+                    m_groupCreator = std::make_shared<User>(User::createFromJson(member, m_chatId));
                     m_groupMembers.insert(m_groupCreator);
-                    m_memberGroupId.emplace(m_groupCreator, m_groupCreator->getID());
                 }
             }
         }
@@ -250,8 +248,7 @@ pplx::task<BasicChat::Result> GroupChat::addGroupMember(const GroupMe::User &use
                         }
                     }
                     nlohmann::json userJson = nlohmann::json::parse(response.extract_string(true).get()).at("response").at("members").at(0);
-                    std::shared_ptr<User> sharedUser(std::make_shared<User>(User::createFromJson(userJson)));
-                    m_memberGroupId.emplace(sharedUser, sharedUser->getID());
+                    std::shared_ptr<User> sharedUser(std::make_shared<User>(User::createFromJson(userJson, m_chatId)));
                     const auto [it, insert] = m_groupMembers.insert(sharedUser);
                     return;
                 }).wait();
@@ -322,8 +319,7 @@ pplx::task<BasicChat::Result> GroupChat::addGroupMember(const std::shared_ptr<Gr
                         }
                     }
                     nlohmann::json userJson = nlohmann::json::parse(response.extract_string(true).get()).at("response").at("members").at(0);
-                    std::shared_ptr<User> sharedUser(std::make_shared<User>(User::createFromJson(userJson)));
-                    m_memberGroupId.emplace(sharedUser, sharedUser->getID());
+                    std::shared_ptr<User> sharedUser(std::make_shared<User>(User::createFromJson(userJson, m_chatId)));
                     const auto [it, insert] = m_groupMembers.insert(sharedUser);
                     returnValue = BasicChat::Result::Success;
                 }).wait();
@@ -344,7 +340,7 @@ pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const GroupMe::User &
             builder.append_path(m_chatId);
             builder.append_path("members");
             try {
-                builder.append_path(m_memberGroupId.at(sharedUser));
+                builder.append_path(user.getUserGroupId(m_chatId).value());
             }
             catch (const std::exception &e) {
                 return BasicChat::Result::NotFound;
@@ -373,7 +369,6 @@ pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const GroupMe::User &
                 }
 
                 m_groupMembers.erase(sharedUser);
-                m_memberGroupId.erase(sharedUser);
                 returnValue = BasicChat::Result::Success;
             }).wait();
 
@@ -390,7 +385,7 @@ pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const std::shared_ptr
             builder.append_path(m_chatId);
             builder.append_path("members");
             try {
-                builder.append_path(m_memberGroupId.at(user));
+                builder.append_path(user->getUserGroupId(m_chatId).value());
             }
             catch (const std::exception &e) {
                 return BasicChat::Result::NotFound;
@@ -415,7 +410,6 @@ pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const std::shared_ptr
                 }
 
                 m_groupMembers.erase(user);
-                m_memberGroupId.erase(user);
                 returnValue = BasicChat::Result::Success;
             }).wait();
 
@@ -603,10 +597,7 @@ pplx::task<BasicChat::Result> GroupChat::update() {
 
             m_groupShareUrl = group["share_url"];
             for (auto &member : group["members"]) {
-                std::shared_ptr<User> user = std::make_shared<User>(User::createFromJson(member));
-                if (const auto [it, insert] = m_groupMembers.insert(user); insert) {
-                    m_memberGroupId.emplace(user, member.at("id"));
-                }
+                std::shared_ptr<User> user = std::make_shared<User>(User::createFromJson(member, m_chatId));
             }
             m_groupCreator = *m_groupMembers.find(group.at("creator_user_id"));
         }).wait();

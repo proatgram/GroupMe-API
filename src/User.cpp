@@ -46,13 +46,17 @@ User::User() :
 
 }
 
-User User::createFromJson(const nlohmann::json &json) {
+User User::createFromJson(const nlohmann::json &json, const std::string &groupId) {
     User user;
 
     user.setID(json.at("user_id"));
     user.setNickname(json.value("nickname", ""));
     user.setProfileImageURL(json.value("image_url", ""));
     user.setGUID(json.value("guid", ""));
+
+    if (!groupId.empty()) {
+        user.m_groupIds[groupId] = json.at("id");
+    }
 
     return user;
 }
@@ -175,6 +179,13 @@ bool User::getTwitterConnected() const {
 
 void User::setTwitterConnected(bool twitterConnected) {
     m_isTwitterConnected = twitterConnected;
+}
+
+std::optional<std::string> User::getUserGroupId(const std::string &groupId) const {
+    if(const auto ids = m_groupIds.find(groupId); ids != m_groupIds.end()) {
+            return ids->second;
+    }
+    return {};
 }
 
 bool User::operator==(const User& user) const {

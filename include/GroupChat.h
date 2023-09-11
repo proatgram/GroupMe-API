@@ -310,6 +310,8 @@ namespace GroupMe {
             pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
         private:
+            friend class m_groupIds;
+
             pplx::task<BasicChat::Result> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
             pplx::task<BasicChat::Result> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
@@ -337,8 +339,6 @@ namespace GroupMe {
             unsigned long long int m_updatedAt;
 
             std::shared_ptr<GroupMe::User> m_groupCreator;
-
-            std::map<std::shared_ptr<GroupMe::User>, std::string, GroupMe::UserCompare> m_memberGroupId;
 
             GroupMe::UserSet m_groupMembers;
     };
