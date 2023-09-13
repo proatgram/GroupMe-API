@@ -18,10 +18,13 @@
 
 #pragma once
 
-#include "Chat.h"
+#include <string>
+#include <pplx/pplx.h>
+
+#include "Message.h"
 
 namespace GroupMe {
-    class BasicChat : public GroupMe::Chat {
+    class BasicChat {
         public:
             /**
              * Represents the query type for message querying
@@ -86,7 +89,7 @@ namespace GroupMe {
 
             BasicChat();
 
-            ~BasicChat() override;
+            virtual ~BasicChat();
 
             BasicChat(const BasicChat &other) = delete;
 
@@ -134,19 +137,28 @@ namespace GroupMe {
              *
              * @return BasicChat::Result The result of the operation
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
+            [[nodiscard("Manage the task")]]
             virtual pplx::task<BasicChat::Result> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
+            [[nodiscard("Manage the task")]]
             virtual pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
         protected:
+            [[nodiscard("Manage the task")]]
             virtual pplx::task<BasicChat::Result> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
+            [[nodiscard("Manage the task")]]
             virtual pplx::task<BasicChat::Result> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
+            [[nodiscard("Manage the task")]]
             virtual pplx::task<BasicChat::Result> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) = 0;
 
             unsigned long long int m_createdAt;
+
+            std::string m_chatId;
 
             std::map<unsigned long long int, GroupMe::Message> m_messages;
             

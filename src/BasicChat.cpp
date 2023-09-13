@@ -21,7 +21,7 @@
 using namespace GroupMe;
 
 BasicChat::BasicChat(const std::string &chatId, unsigned long long int createdAt) :
-    Chat(chatId),
+    m_chatId(chatId),
     m_createdAt(createdAt), 
     m_task(pplx::task<void>([]() -> void {}))
 {
@@ -29,7 +29,7 @@ BasicChat::BasicChat(const std::string &chatId, unsigned long long int createdAt
 }
 
 BasicChat::BasicChat(const std::string &chatId) :
-    Chat(chatId),
+    m_chatId(chatId),
     m_createdAt(),
     m_task(pplx::task<void>([]() -> void {}))
 {
@@ -38,9 +38,7 @@ BasicChat::BasicChat(const std::string &chatId) :
 
 BasicChat::BasicChat() :
     m_createdAt(),
-    m_task(pplx::task<void>([]() -> void {
-        return;
-    }))
+    m_task(pplx::task<void>([]() -> void {}))
 {
     
 }

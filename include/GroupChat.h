@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <list>
 #include <memory>
 #include <map>
 #include <thread>
@@ -34,7 +35,7 @@ namespace GroupMe {
      * @brief A class to represent GroupMe group chats
      *
      */
-    class GroupChat : public GroupMe::BasicChat {
+    class GroupChat final : public GroupMe::BasicChat {
         public:
             /**
              * The visibility / joinability of the Groups.
@@ -74,19 +75,27 @@ namespace GroupMe {
              */
            GroupChat(const std::string &token, const std::string &groupId, const std::string &name, VisibilityType type, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt, const web::uri &shareUrl);
 
-           /**
-            * @brief Constructs a new `GroupMe::GroupChat` object
-            *
-            * This will try to sync data about the group using the API
-            *
-            * @param token The users access token
-            *
-            * @param groupId The group ID
-            *
-            */
-           GroupChat(const std::string &token, const std::string &groupId);
+            /**
+             * @brief Constructs a new `GroupMe::GroupChat` object
+             *
+             * This will try to sync data about the group using the API
+             *
+             * @param token The users access token
+             *
+             * @param groupId The group ID
+             *
+             */
+            GroupChat(const std::string &token, const std::string &groupId);
 
-            ~GroupChat() override = default;
+            GroupChat(const GroupChat &other) = delete;
+
+            GroupChat(GroupChat &&other) = delete;
+
+            GroupChat& operator=(const GroupChat &other) = delete;
+
+            GroupChat& operator=(GroupChat &&other) = delete;
+
+            ~GroupChat() final = default;
 
             /**
              * @brief Gets the group ID
@@ -216,24 +225,56 @@ namespace GroupMe {
             const GroupMe::UserSet& getGroupMembers() const;
 
             /**
-             * @brief Adds a member to the group
+             * @brief Adds members to the group
              *
-             * @param user The user to add to the group as a `GroupMe::User`
+             * @param users The users to add to the group as a `std::vector<GroupMe::User>`
              *
              * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
-            pplx::task<BasicChat::Result> addGroupMember(const GroupMe::User &user);
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> addGroupMembers(const std::vector<User> &users);
 
             /**
-             * @brief Adds a member to the group
+             * @brief Adds members to the group
              *
-             * @param user The user to add to the group as encapsulated in a `std::shared_ptr<GroupMe::User>`
+             * @param users The user to add to the group as encapsulated in a `std::vector<std::shared_ptr<GroupMe::User>>`
              *
              * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
-            pplx::task<BasicChat::Result> addGroupMember(const std::shared_ptr<GroupMe::User> &user);
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> addGroupMembers(const std::vector<std::shared_ptr<User>> &users);
+
+            /**
+             * @brief Adds members to the group
+             *
+             * @param users The users to add to the group as a `GroupMe::User`
+             *
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
+             */
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> addGroupMembers(const User &users);
+
+            /**
+             * @brief Adds members to the group
+             *
+             * @param users The user to add to the group as encapsulated in a `std::shared_ptr<GroupMe::User>`
+             *
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
+             */
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> addGroupMembers(const std::shared_ptr<User> &users);
 
             /**
              * @brief Removes a member from the group
@@ -242,7 +283,10 @@ namespace GroupMe {
              *
              * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> removeGroupMember(const GroupMe::User &user);
 
             /**
@@ -252,7 +296,10 @@ namespace GroupMe {
              *
              * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> removeGroupMember(const std::shared_ptr<GroupMe::User> &user);
 
             /**
@@ -262,7 +309,10 @@ namespace GroupMe {
              *
              * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> destroyGroup();
 
             /**
@@ -274,7 +324,10 @@ namespace GroupMe {
              *
              * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> changeGroupOwner(const GroupMe::User &user);
 
             /**
@@ -286,7 +339,10 @@ namespace GroupMe {
              *
              * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> changeGroupOwner(const std::shared_ptr<GroupMe::User> &user);
 
             /**
@@ -294,7 +350,10 @@ namespace GroupMe {
              * 
              * @return bool true if succeeded and false if not
              *
+             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             *
              */
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> update();
 
             /**
@@ -305,22 +364,23 @@ namespace GroupMe {
              */
             const std::map<unsigned long long int, GroupMe::Message>& getMessages() const;
 
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
         private:
-            friend class m_groupIds;
-
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
+            [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
 
             web::uri m_endpointUrl;
-
-            web::http::http_request m_request;
 
             web::http::client::http_client m_client;
 
