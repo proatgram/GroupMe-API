@@ -110,44 +110,44 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
     }).wait();
 }
 
-std::string GroupChat::getGroupId() const {
+std::string GroupChat::getId() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_chatId;
 }
 
-std::string GroupChat::getGroupName() const {
+std::string GroupChat::getName() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_groupName;
 }
 
-void GroupChat::setGroupName(const std::string &name) {
+void GroupChat::setName(const std::string &name) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_groupName = name;
 }
 
-std::string GroupChat::getGroupDescription() const {
+std::string GroupChat::getDescription() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_groupDescription;
 }
 
-void GroupChat::setGroupDescription(const std::string &description) {
+void GroupChat::setDescription(const std::string &description) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_groupDescription = description;
 }
 
-std::string GroupChat::getGroupImageUrl() const {
+std::string GroupChat::getImageUrl() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_groupImageUrl;
 }
 
-void GroupChat::setGroupImage(GroupMe::Picture &image) {
+void GroupChat::setImage(GroupMe::Picture &image) {
     m_task = pplx::task<void>([&image, this]() {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_groupImageUrl = image.upload().get();
     });
 }
 
-void GroupChat::setGroupImage(const web::uri &url) {
+void GroupChat::setImage(const web::uri &url) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_groupImageUrl = url.to_string();
 }
@@ -157,17 +157,17 @@ std::shared_ptr<const GroupMe::User> GroupChat::getCreator() const {
     return std::const_pointer_cast<const User>(m_groupCreator);
 }
 
-std::string GroupChat::getGroupShareUrl() const {
+std::string GroupChat::getShareUrl() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_groupShareUrl;
 }
 
-GroupChat::VisibilityType GroupChat::getGroupVisibility() const {
+GroupChat::VisibilityType GroupChat::getVisibility() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_groupVisibility;
 }
 
-void GroupChat::setGroupVisibility(GroupMe::GroupChat::VisibilityType visibility) {
+void GroupChat::setVisibility(GroupMe::GroupChat::VisibilityType visibility) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_groupVisibility = visibility;
 }
@@ -177,12 +177,12 @@ unsigned long long int GroupChat::getUpdatedAt() const {
     return m_updatedAt;
 }
 
-const GroupMe::UserSet& GroupChat::getGroupMembers() const {
+const GroupMe::UserSet& GroupChat::getMembers() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_groupMembers;
 }
 
-pplx::task<BasicChat::Result> GroupChat::addGroupMembers(const std::vector<User> &users) {
+pplx::task<BasicChat::Result> GroupChat::addMembers(const std::vector<User> &users) {
     return pplx::task<BasicChat::Result>([this, users]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -249,7 +249,7 @@ pplx::task<BasicChat::Result> GroupChat::addGroupMembers(const std::vector<User>
     });
 }
 
-pplx::task<BasicChat::Result> GroupChat::addGroupMembers(const std::vector<std::shared_ptr<User>> &users) {
+pplx::task<BasicChat::Result> GroupChat::addMembers(const std::vector<std::shared_ptr<User>> &users) {
     return pplx::task<BasicChat::Result>([this, users]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -316,7 +316,7 @@ pplx::task<BasicChat::Result> GroupChat::addGroupMembers(const std::vector<std::
     });
 }
 
-pplx::task<BasicChat::Result> GroupChat::addGroupMembers(const User &users) {
+pplx::task<BasicChat::Result> GroupChat::addMembers(const User &users) {
     return pplx::task<BasicChat::Result>([this, users]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -381,7 +381,7 @@ pplx::task<BasicChat::Result> GroupChat::addGroupMembers(const User &users) {
     });
 }
 
-pplx::task<BasicChat::Result> GroupChat::addGroupMembers(const std::shared_ptr<User> &users) {
+pplx::task<BasicChat::Result> GroupChat::addMembers(const std::shared_ptr<User> &users) {
     return pplx::task<BasicChat::Result>([this, users]() -> BasicChat::Result {
         std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -446,7 +446,7 @@ pplx::task<BasicChat::Result> GroupChat::addGroupMembers(const std::shared_ptr<U
     });
 }
 
-pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const GroupMe::User &user) {
+pplx::task<BasicChat::Result> GroupChat::removeMember(const GroupMe::User &user) {
     return pplx::task<BasicChat::Result>([this, user]() -> BasicChat::Result {
             std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -490,7 +490,7 @@ pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const GroupMe::User &
     });
 }
 
-pplx::task<BasicChat::Result> GroupChat::removeGroupMember(const std::shared_ptr<GroupMe::User> &user) {
+pplx::task<BasicChat::Result> GroupChat::removeMember(const std::shared_ptr<GroupMe::User> &user) {
     return pplx::task<BasicChat::Result>([this, user]() -> BasicChat::Result {
             std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -568,7 +568,7 @@ pplx::task<BasicChat::Result> GroupChat::changeGroupOwner(const User &user) {
                 std::string responseCode = responseJson.at("results").at(0).at("status");
             if (responseCode == "200") {
                 UserSet::iterator newOwnerIt = m_groupMembers.find(responseJson.at("results").at(0).at("owner_id"));
-                if (newOwnerIt != getGroupMembers().end()) {
+                if (newOwnerIt != getMembers().end()) {
                     returnValue = BasicChat::Result::Success;
                     m_groupCreator = *newOwnerIt;
                 }

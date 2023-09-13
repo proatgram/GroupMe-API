@@ -38,8 +38,6 @@ namespace GroupMe {
     class GroupChat final : public GroupMe::BasicChat {
         public:
             /**
-             * The visibility / joinability of the Groups.
-             *
              * @brief The visibility / joinability of the groups
              *
              */
@@ -103,7 +101,7 @@ namespace GroupMe {
              * @return std::string The group ID
              * 
              */
-            std::string getGroupId() const;
+            std::string getId() const;
 
             /**
              * @brief Gets the group name
@@ -111,7 +109,7 @@ namespace GroupMe {
              * @return std::string The group name
              *
              */
-            std::string getGroupName() const;
+            std::string getName() const;
 
             /**
              * @brief Sets the group name
@@ -121,7 +119,7 @@ namespace GroupMe {
              * @return void
              *
              */
-            void setGroupName(const std::string &name);
+            void setName(const std::string &name);
 
             /**
              * @brief Gets the groups description
@@ -129,7 +127,7 @@ namespace GroupMe {
              * @return std::string The description
              *
              */
-            std::string getGroupDescription() const;
+            std::string getDescription() const;
 
             /**
              * @brief Sets the group description
@@ -137,7 +135,7 @@ namespace GroupMe {
              * @return void
              *
              */
-            void setGroupDescription(const std::string &description);
+            void setDescription(const std::string &description);
 
             /**
              * @brief Gets the groups image URL
@@ -145,7 +143,7 @@ namespace GroupMe {
              * @return std::string The URL to the image
              *
              */
-            std::string getGroupImageUrl() const;
+            std::string getImageUrl() const;
 
             /**
              * Sets the groups image to the image
@@ -157,7 +155,7 @@ namespace GroupMe {
              * @return void
              *
              */
-            void setGroupImage(GroupMe::Picture &image);
+            void setImage(GroupMe::Picture &image);
 
             /**
              * @brief Sets the groups image to the image based on a url
@@ -167,7 +165,7 @@ namespace GroupMe {
              * @return void
              *
              */
-            void setGroupImage(const web::uri &url);
+            void setImage(const web::uri &url);
 
             /**
              * @brief Gets the creator of the group
@@ -183,7 +181,7 @@ namespace GroupMe {
              * @return std::string the share URL for the group
              *
              */
-            std::string getGroupShareUrl() const;
+            std::string getShareUrl() const;
 
             /**
              * @brief Gets the visibility for the group
@@ -191,7 +189,7 @@ namespace GroupMe {
              * @return `Chat::VisibilityType` The visibility of the group
              *
              */
-            GroupMe::GroupChat::VisibilityType getGroupVisibility() const;
+            GroupMe::GroupChat::VisibilityType getVisibility() const;
 
             /**
              * @brief Sets the groups visibility / joinability
@@ -202,7 +200,7 @@ namespace GroupMe {
              *
              */
 
-            void setGroupVisibility(GroupMe::GroupChat::VisibilityType visibility);
+            void setVisibility(GroupMe::GroupChat::VisibilityType visibility);
             /**
              * Gets the date the group was updated at
              *
@@ -222,7 +220,7 @@ namespace GroupMe {
              * @return `GroupMe::UserSet` The container that holds the members
              *
              */
-            const GroupMe::UserSet& getGroupMembers() const;
+            const GroupMe::UserSet& getMembers() const;
 
             /**
              * @brief Adds members to the group
@@ -235,7 +233,7 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> addGroupMembers(const std::vector<User> &users);
+            pplx::task<BasicChat::Result> addMembers(const std::vector<User> &users);
 
             /**
              * @brief Adds members to the group
@@ -248,7 +246,7 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> addGroupMembers(const std::vector<std::shared_ptr<User>> &users);
+            pplx::task<BasicChat::Result> addMembers(const std::vector<std::shared_ptr<User>> &users);
 
             /**
              * @brief Adds members to the group
@@ -261,7 +259,7 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> addGroupMembers(const User &users);
+            pplx::task<BasicChat::Result> addMembers(const User &users);
 
             /**
              * @brief Adds members to the group
@@ -274,7 +272,7 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> addGroupMembers(const std::shared_ptr<User> &users);
+            pplx::task<BasicChat::Result> addMembers(const std::shared_ptr<User> &users);
 
             /**
              * @brief Removes a member from the group
@@ -287,7 +285,7 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> removeGroupMember(const GroupMe::User &user);
+            pplx::task<BasicChat::Result> removeMember(const GroupMe::User &user);
 
             /**
              * @brief Removes a member from the group
@@ -300,7 +298,7 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> removeGroupMember(const std::shared_ptr<GroupMe::User> &user);
+            pplx::task<BasicChat::Result> removeMember(const std::shared_ptr<GroupMe::User> &user);
 
             /**
              * @brief Disbands / destroys a group
