@@ -1,6 +1,6 @@
 /*
     This is a library used to communicate with the GroupMe API efficiently and seamlessly.
-    Copyright (C) 2022 Timothy Hutchins
+    Copyright (C) 2023 Timothy Hutchins
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,34 +18,11 @@
 
 #pragma once
 
-#include <list>
-#include <memory>
-#include <map>
-#include <thread>
-#include <chrono>
-#include <utility>
-#include <nlohmann/json.hpp>
-
-#include "BasicChat.h"
+#include "BasicGroupChat.h"
 
 namespace GroupMe {
-    /**
-     * A class to represent GroupMe group chats
-     *
-     * @brief A class to represent GroupMe group chats
-     *
-     */
-    class GroupChat final : public GroupMe::BasicChat {
+    class GroupChat final : public BasicGroupChat {
         public:
-            /**
-             * @brief The visibility / joinability of the groups
-             *
-             */
-            enum class VisibilityType {
-                Public,
-                Private,
-                Hidden
-            };
 
             /**
              * @brief Constructs a new `GroupMe::GroupChat` object
@@ -85,95 +62,15 @@ namespace GroupMe {
              */
             GroupChat(const std::string &token, const std::string &groupId);
 
-            GroupChat(const GroupChat &other) = delete;
+            GroupChat(const BasicGroupChat &other) = delete;
 
-            GroupChat(GroupChat &&other) = delete;
+            GroupChat(BasicGroupChat &&other) = delete;
 
-            GroupChat& operator=(const GroupChat &other) = delete;
+            GroupChat& operator=(const BasicGroupChat &other) = delete;
 
-            GroupChat& operator=(GroupChat &&other) = delete;
+            GroupChat& operator=(BasicGroupChat &&other) = delete;
 
-            ~GroupChat() final = default;
-
-            /**
-             * @brief Gets the group ID
-             *
-             * @return std::string The group ID
-             * 
-             */
-            std::string getId() const;
-
-            /**
-             * @brief Gets the group name
-             *
-             * @return std::string The group name
-             *
-             */
-            std::string getName() const;
-
-            /**
-             * @brief Sets the group name
-             *
-             * @param name The new name to set
-             *
-             * @return void
-             *
-             */
-            void setName(const std::string &name);
-
-            /**
-             * @brief Gets the groups description
-             *
-             * @return std::string The description
-             *
-             */
-            std::string getDescription() const;
-
-            /**
-             * @brief Sets the group description
-             *
-             * @return void
-             *
-             */
-            void setDescription(const std::string &description);
-
-            /**
-             * @brief Gets the groups image URL
-             *
-             * @return std::string The URL to the image
-             *
-             */
-            std::string getImageUrl() const;
-
-            /**
-             * Sets the groups image to the image
-             *
-             * @brief Sets the groups image
-             *
-             * @param image A `GroupMe::Picture` holding an image to set
-             *
-             * @return void
-             *
-             */
-            void setImage(GroupMe::Picture &image);
-
-            /**
-             * @brief Sets the groups image to the image based on a url
-             *
-             * @param url A `web::uri` holding an image url to set
-             *
-             * @return void
-             *
-             */
-            void setImage(const web::uri &url);
-
-            /**
-             * @brief Gets the creator of the group
-             *
-             * @return 
-             *
-             */
-            std::shared_ptr<const GroupMe::User> getCreator() const;
+             ~GroupChat() override = default;
 
             /**
              * @brief Gets the groups share URL
@@ -182,45 +79,6 @@ namespace GroupMe {
              *
              */
             std::string getShareUrl() const;
-
-            /**
-             * @brief Gets the visibility for the group
-             *
-             * @return `Chat::VisibilityType` The visibility of the group
-             *
-             */
-            GroupMe::GroupChat::VisibilityType getVisibility() const;
-
-            /**
-             * @brief Sets the groups visibility / joinability
-             *
-             * @param visibility The new visibility of the group to set
-             *
-             * @return void
-             *
-             */
-
-            void setVisibility(GroupMe::GroupChat::VisibilityType visibility);
-            /**
-             * Gets the date the group was updated at
-             *
-             * Not really sure the format as not much about
-             * the dates are given in the documentation
-             *
-             * @brief Gets the date and time the group was updated at
-             *
-             * @return unsigned long long int The date the group was updated
-             *
-             */
-            unsigned long long int getUpdatedAt() const;
-
-            /**
-             * @brief Gets the members in the group
-             *
-             * @return `GroupMe::UserSet` The container that holds the members
-             *
-             */
-            const GroupMe::UserSet& getMembers() const;
 
             /**
              * @brief Adds members to the group
@@ -344,60 +202,30 @@ namespace GroupMe {
             pplx::task<BasicChat::Result> changeGroupOwner(const std::shared_ptr<GroupMe::User> &user);
 
             /**
-             * @brief Updates a group after creation
-             * 
-             * @return bool true if succeeded and false if not
+             * @brief Sets the groups visibility / joinability
              *
-             * The return should not be discarded. Make sure the task being run is finished before program termination.
+             * @param visibility The new visibility of the group to set
              *
-             */
-            [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> update();
-
-            /**
-             * @brief Returns the messages in the groupchat
-             *
-             * @return std::map<unsigned long long int, GroupMe::Message>
+             * @return void
              *
              */
-            const std::map<unsigned long long int, GroupMe::Message>& getMessages() const;
+            void setVisibility(GroupMe::GroupChat::VisibilityType visibility);
 
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> queryMessages(const GroupMe::Message &referenceMessage, GroupMe::BasicChat::QueryType queryType, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
-
-            [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
 
         private:
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
 
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessagesAfter(const GroupMe::Message &afterMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
 
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) override;
+            pplx::task<BasicChat::Result> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
 
-            web::uri m_endpointUrl;
+            static constexpr std::string_view GROUP_ENDPOINT_QUERY = "groups";
 
-            web::http::client::http_client m_client;
-
-            std::string m_accessToken;
-
-            std::string m_groupName;
-
-            std::string m_groupDescription;
-
-            std::string m_groupImageUrl;
-
-            std::string m_groupShareUrl;
-
-            GroupChat::VisibilityType m_groupVisibility;
-
-            unsigned long long int m_updatedAt;
-
-            std::shared_ptr<GroupMe::User> m_groupCreator;
-
-            GroupMe::UserSet m_groupMembers;
+            // std::list<std::shared_ptr<SubGroupChat>> m_subgroups;
     };
 }
