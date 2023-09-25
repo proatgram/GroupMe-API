@@ -22,10 +22,24 @@
 
 #include "GroupChat.h"
 
-int main(int argc, char** argv) {
-    GroupMe::GroupChat chat("***REMOVED***", "12");
+int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
+    GroupMe::GroupChat achat("", "");
+    GroupMe::GroupChat chat(std::move(achat));
 
+    std::cout << "Group name: " << chat.getName() << std::endl;
     chat.queryMessages().wait();
+
+    std::cout << "Creating subgroup / topic" << std::endl;
+    chat.createSubGroup("Subgroup").wait();
+
+    std::vector<std::shared_ptr<GroupMe::SubGroupChat>> groupchats;
+    for (const auto &subgroup : chat.getSubGroups()) {
+        groupchats.push_back(subgroup);
+        std::cout << subgroup->getName() << std::endl;
+    }
+    for (const auto &subgroup : groupchats) {
+        chat.destroySubGroup(subgroup).wait();
+    }
 
     return EXIT_SUCCESS;
 }

@@ -275,4 +275,22 @@ namespace GroupMe {
 
             Message::Type m_type;
     };
+
+    struct MessageCompare {
+        using is_transparent = void;
+
+        inline size_t operator()(const Message &first, const Message &second) const {
+            return static_cast<size_t>(first.getCreatedAt() < second.getCreatedAt());
+        }
+
+        inline size_t operator()(const Message &first, unsigned long long int createdAt) const {
+            return static_cast<size_t>(first.getCreatedAt() < createdAt);
+        }
+
+        inline size_t operator()(unsigned long long int createdAt, const Message &message) const {
+            return static_cast<size_t>(message.getCreatedAt() < createdAt);
+        }
+    };
+
+    using MessageSet = std::set<Message, MessageCompare, std::allocator<Message>>;
 }

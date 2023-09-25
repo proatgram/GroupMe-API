@@ -141,7 +141,7 @@ namespace GroupMe {
              * @return web::uri The URL of the content
              *
              */
-            web::uri getContentURL();
+            web::uri getContentURL() const;
 
             /**
              * @brief Gets the type of attachment
@@ -149,7 +149,7 @@ namespace GroupMe {
              * @return Attachment::Types The type of the attachment
              *
              */
-            Attachment::Types getType();
+            Attachment::Types getType() const;
 
             /**
              * @brief Sets the content URL

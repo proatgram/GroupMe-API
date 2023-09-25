@@ -92,18 +92,6 @@ namespace GroupMe {
              *
              * @param chatId The ID of the chat
              *
-             * @param accessToken The access token to query the API
-             *
-             * @param name The name of the chat or group
-             *
-             */
-            explicit BasicChat(const std::string &chatId, const std::string &accessToken, const std::string &name);
-
-            /**
-             * @brief Constructs a new `GroupMe::BasicChat` object
-             *
-             * @param chatId The ID of the chat
-             *
              * @param createdAt The date the group was created at
              *
              */
@@ -121,31 +109,17 @@ namespace GroupMe {
              */
             explicit BasicChat(const std::string &chatId, const std::string &accessToken, unsigned long long int createdAt);
 
-            /**
-             * @brief Constructs a new `GroupMe::BasicChat` object
-             *
-             * @param chatId The ID of the chat
-             *
-             * @param accessToken The access token to query the API
-             *
-             * @param createdAt The date the group was created at
-             *
-             * @param name The name of the chat or group
-             *
-             */
-            explicit BasicChat(const std::string &chatId, const std::string &accessToken, unsigned long long int createdAt, const std::string &name);
-
             BasicChat();
 
-            virtual ~BasicChat();
+            virtual ~BasicChat() = default;
 
-            BasicChat(const BasicChat &other) = delete;
+            BasicChat(const BasicChat &other);
 
-            BasicChat(BasicChat &&other) = delete;
+            BasicChat(BasicChat &&other) noexcept;
 
-            BasicChat& operator=(const BasicChat &other) = delete;
+            BasicChat& operator=(const BasicChat &other);
 
-            BasicChat& operator=(BasicChat &&other) = delete;
+            BasicChat& operator=(BasicChat &&other) noexcept;
 
             /**
              * Gets the date the chat was created at
@@ -169,30 +143,12 @@ namespace GroupMe {
             std::string getId() const;
 
             /**
-             * @brief Gets the group name
-             *
-             * @return std::string The group name
-             *
-             */
-            std::string getName() const;
-
-            /**
-             * @brief Sets the group name
-             *
-             * @param name The new name to set
-             *
-             * @return void
-             *
-             */
-            void setName(const std::string &name);
-
-            /**
              * @brief Gets the members in the group
              *
-             * @return `GroupMe::UserSet` The container that holds the members
+             * @return `std::shared_ptr<GroupMe::UserSet>` The container that holds the members
              *
              */
-            const GroupMe::UserSet& getMembers() const;
+            const std::shared_ptr<GroupMe::UserSet>& getMembers() const;
 
             /**
              * Query messages in the group
@@ -242,19 +198,13 @@ namespace GroupMe {
 
             std::string m_chatId;
 
-            std::map<unsigned long long int, GroupMe::Message> m_messages;
+            MessageSet m_messages;
             
-            pplx::task<void> m_task;
-
-            web::uri_builder m_endpointUrl;
-
             web::http::client::http_client m_client;
 
             std::string m_accessToken;
 
-            GroupMe::UserSet m_members;
-
-            std::string m_name;
+            std::shared_ptr<GroupMe::UserSet> m_members;
 
             mutable std::mutex m_mutex;
     };

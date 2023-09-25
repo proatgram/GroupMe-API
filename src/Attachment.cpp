@@ -58,11 +58,11 @@ Attachment::Attachment(const std::string &content, const Attachment::Types &type
 
 }
 
-Attachment::Types Attachment::getType() {
+Attachment::Types Attachment::getType() const {
     return m_type;
 }
 
-web::uri Attachment::getContentURL() {
+web::uri Attachment::getContentURL() const {
     return m_content;
 }
 

@@ -19,10 +19,24 @@
 #pragma once
 
 #include "BasicGroupChat.h"
+#include "SubGroupChat.h"
 
 namespace GroupMe {
+    /**
+     * A class to represent GroupMe group chats
+     *
+     */
     class GroupChat final : public BasicGroupChat {
         public:
+            /**
+             * @brief The visibility / joinability of the groups
+             *
+             */
+            enum class VisibilityType {
+                Public,
+                Private,
+                Hidden
+            };
 
             /**
              * @brief Constructs a new `GroupMe::GroupChat` object
@@ -45,10 +59,8 @@ namespace GroupMe {
              *
              * @param updatedAt The date the group was updated at
              *
-             * @param shareUrl The share URL for the group
-             *
              */
-           GroupChat(const std::string &token, const std::string &groupId, const std::string &name, VisibilityType type, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt, const web::uri &shareUrl);
+           GroupChat(const std::string &token, const std::string &groupId, const std::string &name, VisibilityType type, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt);
 
             /**
              * @brief Constructs a new `GroupMe::GroupChat` object
@@ -62,13 +74,13 @@ namespace GroupMe {
              */
             GroupChat(const std::string &token, const std::string &groupId);
 
-            GroupChat(const BasicGroupChat &other) = delete;
+            GroupChat(const GroupChat &other) = default;
 
-            GroupChat(BasicGroupChat &&other) = delete;
+            GroupChat(GroupChat &&other) noexcept = default;
 
-            GroupChat& operator=(const BasicGroupChat &other) = delete;
+            GroupChat& operator=(const GroupChat &other) = default;
 
-            GroupChat& operator=(BasicGroupChat &&other) = delete;
+            GroupChat& operator=(GroupChat &&other) noexcept = default;
 
              ~GroupChat() override = default;
 
@@ -211,6 +223,78 @@ namespace GroupMe {
              */
             void setVisibility(GroupMe::GroupChat::VisibilityType visibility);
 
+            /**
+             * @brief Gets the creator of the group
+             *
+             * @return std::shared_ptr<const GroupMe::User>
+             *
+             */
+            std::shared_ptr<const GroupMe::User> getCreator() const;
+
+            /**
+             * @brief Gets the visibility for the group
+             *
+             * @return `Chat::VisibilityType` The visibility of the group
+             *
+             */
+            GroupMe::GroupChat::VisibilityType getVisibility() const;
+
+            /**
+             * @brief Gets the SubGroups of this GroupChat
+             *
+             * @return `std::list<SubGroupChat>`
+             *
+             */
+            const std::list<std::shared_ptr<SubGroupChat>>& getSubGroups() const;
+
+            /**
+             * @brief Creates a SubGroup for this GroupChat
+             *
+             * @param topic The name for the SubGroup (known on the API side as a `topic`)
+             *
+             * @param description The description for the SubGroup
+             *
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             */
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> createSubGroup(const std::string &topic, const std::string &description = "");
+
+            /**
+             * @brief Deletes a SubGroup for this GroupChat
+             *
+             * @param chatId The ID of the SubGroupChat
+             *
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             *
+             */
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> destroySubGroup(const std::string &subGroupId);
+
+            /**
+             * @brief Deletes a SubGroup for this GroupChat
+             *
+             * @param subGroupChat The SubGroupChat to delete
+             *
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             *
+             */
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> destroySubGroup(const GroupMe::SubGroupChat &subGroupChat);
+
+            /**
+             * @brief Deletes a SubGroup for this GroupChat
+             *
+             * @param subGroupChat The SubGroupChat to delete
+             *
+             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             *
+             */
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> destroySubGroup(const std::shared_ptr<GroupMe::SubGroupChat> &subGroupChat);
+
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> update() final;
+
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
 
@@ -224,8 +308,12 @@ namespace GroupMe {
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
 
-            static constexpr std::string_view GROUP_ENDPOINT_QUERY = "groups";
+            GroupMe::GroupChat::VisibilityType m_groupVisibility;
 
-            // std::list<std::shared_ptr<SubGroupChat>> m_subgroups;
+            std::shared_ptr<GroupMe::User> m_groupCreator;
+
+            std::string m_groupShareUrl;
+
+            std::list<std::shared_ptr<SubGroupChat>> m_subgroups;
     };
 }

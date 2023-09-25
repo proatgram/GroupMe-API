@@ -23,7 +23,7 @@ using namespace GroupMe;
 BasicChat::BasicChat() :
     m_createdAt(),
     m_client("https://api.groupme.com/v3/"),
-    m_task(pplx::task<void>([]() -> void {}))
+    m_members(std::make_shared<UserSet>())
 {
     
 }
@@ -32,7 +32,7 @@ BasicChat::BasicChat(const std::string &chatId) :
     m_chatId(chatId),
     m_createdAt(),
     m_client("https://api.groupme.com/v3/"),
-    m_task(pplx::task<void>([]() -> void {}))
+    m_members(std::make_shared<UserSet>())
 {
 
 }
@@ -42,18 +42,7 @@ BasicChat::BasicChat(const std::string &chatId, const std::string &accessToken) 
     m_accessToken(accessToken),
     m_createdAt(),
     m_client("https://api.groupme.com/v3/"),
-    m_task(pplx::task<void>([]() -> void {}))
-{
-
-}
-
-BasicChat::BasicChat(const std::string &chatId, const std::string &accessToken, const std::string &name) :
-    m_chatId(chatId),
-    m_accessToken(accessToken),
-    m_name(name),
-    m_createdAt(),
-    m_client("https://api.groupme.com/v3/"),
-    m_task(pplx::task<void>([]() -> void {}))
+    m_members(std::make_shared<UserSet>())
 {
 
 }
@@ -62,7 +51,7 @@ BasicChat::BasicChat(const std::string &chatId, unsigned long long int createdAt
     m_chatId(chatId),
     m_createdAt(createdAt), 
     m_client("https://api.groupme.com/v3/"),
-    m_task(pplx::task<void>([]() -> void {}))
+    m_members(std::make_shared<UserSet>())
 {
 
 }
@@ -72,28 +61,55 @@ BasicChat::BasicChat(const std::string &chatId, const std::string &accessToken, 
     m_accessToken(accessToken),
     m_createdAt(createdAt),
     m_client("https://api.groupme.com/v3/"),
-    m_task(pplx::task<void>([]() -> void {}))
+    m_members(std::make_shared<UserSet>())
 {
 
 }
 
-BasicChat::BasicChat(const std::string &chatId, const std::string &accessToken, unsigned long long int createdAt, const std::string &name) :
-    m_chatId(chatId),
-    m_accessToken(accessToken),
-    m_createdAt(createdAt),
-    m_name(name),
-    m_client("https://api.groupme.com/v3/"),
-    m_task(pplx::task<void>([]() -> void {}))
-{}
+BasicChat::BasicChat(const BasicChat &other) :
+    m_chatId(other.m_chatId),
+    m_accessToken(other.m_accessToken),
+    m_createdAt(other.m_createdAt),
+    m_client(other.m_client),
+    m_members(other.m_members)
+{
 
-const GroupMe::UserSet& BasicChat::getMembers() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_members;
 }
 
+BasicChat::BasicChat(BasicChat &&other) noexcept :
+    m_chatId(std::move(other.m_chatId)),
+    m_accessToken(std::move(other.m_accessToken)),
+    m_createdAt(other.m_createdAt),
+    m_client(other.m_client),
+    m_members(std::move(other.m_members))
+{
 
-BasicChat::~BasicChat() {
-    m_task.wait();
+}
+
+BasicChat& BasicChat::operator=(const BasicChat &other) {
+    if (this != &other) {
+        m_chatId = other.m_chatId;
+        m_accessToken = other.m_accessToken;
+        m_createdAt = other.m_createdAt;
+        m_client = other.m_client;
+        m_members = other.m_members;
+    }
+    return *this;
+}
+
+BasicChat& BasicChat::operator=(BasicChat &&other) noexcept {
+    m_chatId = std::move(other.m_chatId);
+    m_accessToken = std::move(other.m_accessToken);
+    m_createdAt = other.m_createdAt;
+    m_client = other.m_client;
+    m_members = std::move(other.m_members);
+    
+    return *this;
+}
+
+const std::shared_ptr<GroupMe::UserSet>& BasicChat::getMembers() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_members;
 }
 
 unsigned long long int BasicChat::getCreatedAt() const {
@@ -104,15 +120,5 @@ unsigned long long int BasicChat::getCreatedAt() const {
 std::string BasicChat::getId() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_chatId;
-}
-
-std::string BasicChat::getName() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_name;
-}
-
-void BasicChat::setName(const std::string &name) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_name = name;
 }
 

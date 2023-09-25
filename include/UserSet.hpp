@@ -47,5 +47,5 @@ namespace GroupMe {
      * Essentially this is just a std::set with some custom comparisons
      *
      */
-    typedef std::set<std::shared_ptr<User>, UserCompare, std::allocator<std::shared_ptr<User>>> UserSet;
+    using UserSet = std::set<std::shared_ptr<User>, UserCompare, std::allocator<std::shared_ptr<User>>>;
 }
