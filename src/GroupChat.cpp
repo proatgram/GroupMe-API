@@ -21,9 +21,9 @@
 
 using namespace GroupMe;
 
-GroupChat::GroupChat(const std::string &token, const std::string &groupId, const std::string &name, VisibilityType type, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt) :
+GroupChat::GroupChat(const std::string &token, const std::string &groupId, const std::string &name, Visibility visibility, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt) :
     BasicGroupChat(token, groupId, name, description, imageUrl, createdAt, updatedAt),
-    m_groupVisibility(type),
+    m_groupVisibility(visibility),
     m_groupCreator(creator)
 {
 
@@ -32,7 +32,7 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId, const
 
 GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
     BasicGroupChat(token, groupId),
-    m_groupVisibility(VisibilityType::Private)
+    m_groupVisibility(Visibility::Hidden)
 {
     web::uri_builder uri_builder(GROUP_ENDPOINT_QUERY.data());
 
@@ -64,10 +64,10 @@ GroupChat::GroupChat(const std::string &token, const std::string &groupId) :
         m_name = group.at("name");
         
         if (group.at("type") == "private") {
-            m_groupVisibility = VisibilityType::Private;
+            m_groupType = GroupType::Private;
         }
         else if (group.at("type") == "public") {
-            m_groupVisibility = VisibilityType::Public;
+            m_groupType = GroupType::Public;
         }
 
         m_groupDescription = group.at("description");
@@ -589,24 +589,24 @@ pplx::task<BasicChat::Result> GroupChat::changeGroupOwner(const std::shared_ptr<
     });
 }
 
-void GroupChat::setVisibility(GroupMe::GroupChat::VisibilityType visibility) {
+void GroupChat::setVisibility(GroupMe::GroupChat::Visibility visibility) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_groupVisibility = visibility;
 }
 
-GroupChat::VisibilityType GroupChat::getVisibility() const {
+GroupChat::Visibility GroupChat::getVisibility() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_groupVisibility;
 }
 
 void GroupChat::setGroupPermissions(const GroupChat::GroupPermissions &permissions) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_groupType = permissions;
+    m_groupPermissions = permissions;
 }
 
 GroupChat::GroupPermissions GroupChat::getGroupPermissions() const {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return m_groupType;
+    return m_groupPermissions;
 }
 
 void GroupChat::setDeletionPermissions(const GroupChat::DeletionPermissions &permissions) {
@@ -788,6 +788,11 @@ GroupChat::destroySubGroup(const std::unique_ptr<SubGroupChat> &subGroupChat) {
     // nothing being able to modify or delete the subGroupChat while
     // we are working on it. This also gets by the non-copyable nature
     // of std::unique_ptr's.
+    //
+    // The additional lock here makes sure that the first thing the
+    // function does is prevent changes from being made to the
+    // std::unique_ptr.
+    std::lock_guard<std::mutex> lock(m_mutex);
     return pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>(
             [this, subGroupChat = subGroupChat.get()]() 
                 -> std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
@@ -960,22 +965,15 @@ pplx::task<BasicChat::Result> GroupChat::update() {
         auto deletion_permissions = nlohmann::json::array();
 
         switch (m_messageDeletionMode) {
-            case DeletionPermissions::Nobody: {
-                break;
-            }
             case DeletionPermissions::Both: {
                 deletion_permissions.push_back("admin");
                 deletion_permissions.push_back("sender");
                 break;
             }
-            case DeletionPermissions::Admin: {
+            case DeletionPermissions::AdminOnly: {
                 deletion_permissions.push_back("admin");
                 break;
             }
-            case DeletionPermissions::Author: {
-                deletion_permissions.push_back("sender");
-                break;
-            }                  
         }
 
         nlohmann::json body {
@@ -984,9 +982,10 @@ pplx::task<BasicChat::Result> GroupChat::update() {
             {"image_url", m_groupImageUrl},
             {"share", true},
             {"requires_approval", m_groupJoinability == Joinability::ApprovedMembers},
-            {"visibility", m_groupVisibility == VisibilityType::Hidden ? "hidden" : "searchable"},
-            {"messages_deletion_mode", deletion_permissions},
+            {"visibility", m_groupVisibility == Visibility::Hidden ? "hidden" : "searchable"},
+            {"message_deletion_mode", deletion_permissions},
             {"description", m_groupDescription},
+            {"type", m_groupType == GroupType::Private ? "private" : "public"}
         };
         if (m_groupJoinability == Joinability::ApprovedMembers) {
             body.push_back({"show_join_question", m_showJoinQuestion});
@@ -1011,10 +1010,10 @@ pplx::task<BasicChat::Result> GroupChat::update() {
             m_name = group.at("name");
             
             if (group.at("type") == "private") {
-                m_groupVisibility = VisibilityType::Private;
+                m_groupType = GroupType::Private;
             }
             else if (group.at("type") == "public") {
-                m_groupVisibility = VisibilityType::Public;
+                m_groupType = GroupType::Public;
             }
 
             m_groupDescription = group.at("description");

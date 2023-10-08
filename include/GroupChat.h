@@ -48,20 +48,30 @@ namespace GroupMe {
              *
              */
             enum class DeletionPermissions {
-                Nobody,
-                Admin,
-                Author,
+                AdminOnly,
                 Both
             };
             
             /**
-             * @brief The visibility / joinability of the groups
+             * @brief The type of the groups
+             *
+             * This isn't really mentioned in any requests or documentation,
+             * it's just sent in a request, so we support it here. No request
+             * seems to change this however.
              *
              */
-            enum class VisibilityType {
+            enum class GroupType {
                 Public,
-                Private,
-                Hidden
+                Private
+            };
+
+            /**
+             * @brief The visibility of the group
+             *
+             */
+            enum class Visibility {
+                Hidden,
+                Searchable
             };
 
             enum class Joinability {
@@ -78,7 +88,7 @@ namespace GroupMe {
              *
              * @param name The group name
              *
-             * @param type The visibility of the group
+             * @param visibility The visibility of the group
              * 
              * @param description The description of the group
              *
@@ -91,7 +101,7 @@ namespace GroupMe {
              * @param updatedAt The date the group was updated at
              *
              */
-           GroupChat(const std::string &token, const std::string &groupId, const std::string &name, VisibilityType type, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt);
+           GroupChat(const std::string &token, const std::string &groupId, const std::string &name, Visibility visibility, const std::string &description, const web::uri &imageUrl, const std::shared_ptr<User> &creator, unsigned long long int createdAt, unsigned long long int updatedAt);
 
             /**
              * @brief Constructs a new `GroupMe::GroupChat` object
@@ -252,7 +262,7 @@ namespace GroupMe {
              * @return void
              *
              */
-            void setVisibility(GroupMe::GroupChat::VisibilityType visibility);
+            void setVisibility(GroupMe::GroupChat::Visibility visibility);
 
             /**
              * @brief Gets the creator of the group
@@ -265,10 +275,10 @@ namespace GroupMe {
             /**
              * @brief Gets the visibility for the group
              *
-             * @return `Chat::VisibilityType` The visibility of the group
+             * @return `GroupChat::Visibility` The visibility of the group
              *
              */
-            GroupMe::GroupChat::VisibilityType getVisibility() const;
+            GroupMe::GroupChat::Visibility getVisibility() const;
 
             /**
              * @brief Sets the Group Permissions for the group
@@ -462,11 +472,13 @@ namespace GroupMe {
 
             std::string m_joinQuestion;
 
-            GroupMe::GroupChat::VisibilityType m_groupVisibility;
+            GroupMe::GroupChat::GroupType m_groupType;
+
+            GroupMe::GroupChat::Visibility m_groupVisibility;
 
             GroupMe::GroupChat::DeletionPermissions m_messageDeletionMode;
 
-            GroupMe::GroupChat::GroupPermissions m_groupType;
+            GroupMe::GroupChat::GroupPermissions m_groupPermissions;
 
             GroupMe::GroupChat::Joinability m_groupJoinability;
 
