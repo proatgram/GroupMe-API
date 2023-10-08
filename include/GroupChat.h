@@ -399,7 +399,7 @@ namespace GroupMe {
              * @return `std::list<SubGroupChat>`
              *
              */
-            const std::list<std::unique_ptr<SubGroupChat>>& getSubGroups() const;
+            const std::list<std::shared_ptr<SubGroupChat>>& getSubGroups() const;
 
             /**
              * @brief Creates a SubGroup for this GroupChat
@@ -419,11 +419,12 @@ namespace GroupMe {
              *
              * @param chatId The ID of the SubGroupChat
              *
-             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             * @return pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+             * The return of the concurrent task will be the result of the operation, or an error as a `BasicChat::Result`
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+            pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
             destroySubGroup(const std::string &subGroupId);
 
             /**
@@ -431,11 +432,12 @@ namespace GroupMe {
              *
              * @param subGroupChat The SubGroupChat to delete
              *
-             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             * @return pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+             * The return of the concurrent task will be the result of the operation, or an error as a `BasicChat::Result`
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+            pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
             destroySubGroup(const GroupMe::SubGroupChat &subGroupChat);
 
             /**
@@ -443,12 +445,13 @@ namespace GroupMe {
              *
              * @param subGroupChat The SubGroupChat to delete
              *
-             * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             * @return pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+             * The return of the concurrent task will be the result of the operation, or an error as a `BasicChat::Result`
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
-            destroySubGroup(const std::unique_ptr<GroupMe::SubGroupChat> &subGroupChat);
+            pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+            destroySubGroup(const std::shared_ptr<GroupMe::SubGroupChat> &subGroupChat);
 
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> update() final;
@@ -486,6 +489,6 @@ namespace GroupMe {
 
             std::string m_groupShareUrl;
 
-            std::list<std::unique_ptr<SubGroupChat>> m_subgroups;
+            std::list<std::shared_ptr<SubGroupChat>> m_subgroups;
     };
 }

@@ -664,7 +664,7 @@ std::shared_ptr<const GroupMe::User> GroupChat::getCreator() const {
     return std::const_pointer_cast<const User>(m_groupCreator);
 }
 
-const std::list<std::unique_ptr<SubGroupChat>>& GroupChat::getSubGroups() const {
+const std::list<std::shared_ptr<SubGroupChat>>& GroupChat::getSubGroups() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_subgroups;
 }
@@ -708,10 +708,10 @@ pplx::task<BasicChat::Result> GroupChat::createSubGroup(const std::string &topic
     });
 }
 
-pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
 GroupChat::destroySubGroup(const std::string &subGroupId) {
-    return pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>([=]() 
-            -> std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
+    return pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>([=]() 
+            -> std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         web::uri_builder uri_builder(GROUP_ENDPOINT_QUERY.data());
@@ -736,7 +736,7 @@ GroupChat::destroySubGroup(const std::string &subGroupId) {
             }
         }
 
-        for (std::list<std::unique_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
+        for (std::list<std::shared_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
             if (subchat->get()->getId() == subGroupId) {
                return m_subgroups.erase(subchat++);
             }
@@ -745,10 +745,10 @@ GroupChat::destroySubGroup(const std::string &subGroupId) {
     });
 }
 
-pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
 GroupChat::destroySubGroup(const SubGroupChat &subGroupChat) {
-    return pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>([=]() 
-          -> std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
+    return pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>([=]() 
+          -> std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         web::uri_builder uri_builder(GROUP_ENDPOINT_QUERY.data());
@@ -773,7 +773,7 @@ GroupChat::destroySubGroup(const SubGroupChat &subGroupChat) {
             }
         }
 
-        for (std::list<std::unique_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
+        for (std::list<std::shared_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
             if (subchat->get()->getId() == subGroupChat.getId()) {
                 return m_subgroups.erase(subchat++);
             }
@@ -782,20 +782,11 @@ GroupChat::destroySubGroup(const SubGroupChat &subGroupChat) {
     });
 }
 
-pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
-GroupChat::destroySubGroup(const std::unique_ptr<SubGroupChat> &subGroupChat) {
-    // Capturing the raw C pointer in this context is safe due to
-    // nothing being able to modify or delete the subGroupChat while
-    // we are working on it. This also gets by the non-copyable nature
-    // of std::unique_ptr's.
-    //
-    // The additional lock here makes sure that the first thing the
-    // function does is prevent changes from being made to the
-    // std::unique_ptr.
+pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+GroupChat::destroySubGroup(const std::shared_ptr<SubGroupChat> &subGroupChat) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>(
-            [this, subGroupChat = subGroupChat.get()]() 
-                -> std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
+    return pplx::task<std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>([=]() 
+          -> std::variant<std::list<std::shared_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         web::uri_builder uri_builder(GROUP_ENDPOINT_QUERY.data());
@@ -821,8 +812,8 @@ GroupChat::destroySubGroup(const std::unique_ptr<SubGroupChat> &subGroupChat) {
         }
 
         
-        for (std::list<std::unique_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
-            if (subchat->get()->getId() == subGroupChat->getId()) {
+        for (std::list<std::shared_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
+            if (*subchat == subGroupChat) {
                 return m_subgroups.erase(subchat++);
             }
         }

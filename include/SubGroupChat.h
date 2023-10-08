@@ -94,10 +94,10 @@ namespace GroupMe {
              *
              * @param accessToken The access token to be used to query the server
              *
-             * @return SubGroupChat
+             * @return std::shared_ptr<SubGroupChat>
              *
              */
-            static std::unique_ptr<SubGroupChat> createFromJson(const nlohmann::json &json, const std::shared_ptr<UserSet> &members, const std::string &accessToken);
+            static std::shared_ptr<SubGroupChat> createFromJson(const nlohmann::json &json, const std::shared_ptr<UserSet> &members, const std::string &accessToken);
 
             /**
              * @brief Returns the ID of the Parent Group Chat this
