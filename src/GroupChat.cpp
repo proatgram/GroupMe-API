@@ -599,12 +599,72 @@ GroupChat::VisibilityType GroupChat::getVisibility() const {
     return m_groupVisibility;
 }
 
+void GroupChat::setGroupPermissions(const GroupChat::GroupPermissions &permissions) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_groupType = permissions;
+}
+
+GroupChat::GroupPermissions GroupChat::getGroupPermissions() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_groupType;
+}
+
+void GroupChat::setDeletionPermissions(const GroupChat::DeletionPermissions &permissions) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_messageDeletionMode = permissions;
+}
+
+GroupChat::DeletionPermissions GroupChat::getDeletionPermissions() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_messageDeletionMode;
+}
+
+void GroupChat::setJoinability(const GroupChat::Joinability &memberType) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_groupJoinability = memberType;
+}
+
+GroupChat::Joinability GroupChat::getJoinability() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_groupJoinability;
+}
+
+void GroupChat::setRequiresApproval(bool requiresApproval) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_requiresApproval = requiresApproval;
+}
+
+bool GroupChat::getRequiresApproval() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_requiresApproval;
+}
+
+void GroupChat::setShowJoinQuestion(bool showJoinQuestion) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_showJoinQuestion = showJoinQuestion;
+}
+
+bool GroupChat::getShowJoinQuestion() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_showJoinQuestion;
+}
+
+void GroupChat::setJoinQuestion(const std::string &question) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_joinQuestion = question;
+}
+
+const std::string& GroupChat::getJoinQuestion() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_joinQuestion;
+}
+
 std::shared_ptr<const GroupMe::User> GroupChat::getCreator() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return std::const_pointer_cast<const User>(m_groupCreator);
 }
 
-const std::list<std::shared_ptr<SubGroupChat>>& GroupChat::getSubGroups() const {
+const std::list<std::unique_ptr<SubGroupChat>>& GroupChat::getSubGroups() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_subgroups;
 }
@@ -642,14 +702,16 @@ pplx::task<BasicChat::Result> GroupChat::createSubGroup(const std::string &topic
 
         const std::string subGroupId = std::to_string(json.at("id").get<unsigned long long int>());
 
-        m_subgroups.push_back(std::make_shared<SubGroupChat>(m_accessToken, subGroupId, m_chatId, topic, description, (json.at("avatar_url").is_null() ? "" : json.at("avatar_url").get<std::string>()), json.at("created_at"), json.at("updated_at"), m_members));
+        m_subgroups.push_back(std::make_unique<SubGroupChat>(m_accessToken, subGroupId, m_chatId, topic, description, (json.at("avatar_url").is_null() ? "" : json.at("avatar_url").get<std::string>()), json.at("created_at"), json.at("updated_at"), m_members));
 
         return BasicChat::Result::Success;
     });
 }
 
-pplx::task<BasicChat::Result> GroupChat::destroySubGroup(const std::string &subGroupId) {
-    return pplx::task<BasicChat::Result>([=]() -> BasicChat::Result {
+pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+GroupChat::destroySubGroup(const std::string &subGroupId) {
+    return pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>([=]() 
+            -> std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         web::uri_builder uri_builder(GROUP_ENDPOINT_QUERY.data());
@@ -674,19 +736,19 @@ pplx::task<BasicChat::Result> GroupChat::destroySubGroup(const std::string &subG
             }
         }
 
-        for (std::list<std::shared_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
+        for (std::list<std::unique_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
             if (subchat->get()->getId() == subGroupId) {
-                m_subgroups.erase(subchat++);
-                break;
+               return m_subgroups.erase(subchat++);
             }
         }
-
-        return BasicChat::Result::Success;
+        return BasicChat::Result::NotFound;
     });
 }
 
-pplx::task<BasicChat::Result> GroupChat::destroySubGroup(const SubGroupChat &subGroupChat) {
-    return pplx::task<BasicChat::Result>([=]() -> BasicChat::Result {
+pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+GroupChat::destroySubGroup(const SubGroupChat &subGroupChat) {
+    return pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>([=]() 
+          -> std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         web::uri_builder uri_builder(GROUP_ENDPOINT_QUERY.data());
@@ -711,19 +773,24 @@ pplx::task<BasicChat::Result> GroupChat::destroySubGroup(const SubGroupChat &sub
             }
         }
 
-        for (std::list<std::shared_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
+        for (std::list<std::unique_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
             if (subchat->get()->getId() == subGroupChat.getId()) {
-                m_subgroups.erase(subchat++);
-                break;
+                return m_subgroups.erase(subchat++);
             }
         }
-
-        return BasicChat::Result::Success;
+        return BasicChat::Result::NotFound;
     });
 }
 
-pplx::task<BasicChat::Result> GroupChat::destroySubGroup(const std::shared_ptr<SubGroupChat> &subGroupChat) {
-    return pplx::task<BasicChat::Result>([=]() -> BasicChat::Result {
+pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+GroupChat::destroySubGroup(const std::unique_ptr<SubGroupChat> &subGroupChat) {
+    // Capturing the raw C pointer in this context is safe due to
+    // nothing being able to modify or delete the subGroupChat while
+    // we are working on it. This also gets by the non-copyable nature
+    // of std::unique_ptr's.
+    return pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>>(
+            [this, subGroupChat = subGroupChat.get()]() 
+                -> std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result> {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         web::uri_builder uri_builder(GROUP_ENDPOINT_QUERY.data());
@@ -748,9 +815,13 @@ pplx::task<BasicChat::Result> GroupChat::destroySubGroup(const std::shared_ptr<S
             }
         }
 
-        m_subgroups.remove(subGroupChat);
-
-        return BasicChat::Result::Success;
+        
+        for (std::list<std::unique_ptr<SubGroupChat>>::iterator subchat = m_subgroups.begin(); subchat != m_subgroups.end(); ++subchat) {
+            if (subchat->get()->getId() == subGroupChat->getId()) {
+                return m_subgroups.erase(subchat++);
+            }
+        }
+        return BasicChat::Result::NotFound;
     });
 }
 
@@ -886,17 +957,48 @@ pplx::task<BasicChat::Result> GroupChat::update() {
         uri_builder.append_path("update");
         uri_builder.append_query("token", m_accessToken);
 
-        nlohmann::json body{
+        auto deletion_permissions = nlohmann::json::array();
+
+        switch (m_messageDeletionMode) {
+            case DeletionPermissions::Nobody: {
+                break;
+            }
+            case DeletionPermissions::Both: {
+                deletion_permissions.push_back("admin");
+                deletion_permissions.push_back("sender");
+                break;
+            }
+            case DeletionPermissions::Admin: {
+                deletion_permissions.push_back("admin");
+                break;
+            }
+            case DeletionPermissions::Author: {
+                deletion_permissions.push_back("sender");
+                break;
+            }                  
+        }
+
+        nlohmann::json body {
             {"name", m_name},
             {"description", m_groupDescription},
             {"image_url", m_groupImageUrl},
-            {"share", true}
+            {"share", true},
+            {"requires_approval", m_groupJoinability == Joinability::ApprovedMembers},
+            {"visibility", m_groupVisibility == VisibilityType::Hidden ? "hidden" : "searchable"},
+            {"messages_deletion_mode", deletion_permissions},
+            {"description", m_groupDescription},
         };
+        if (m_groupJoinability == Joinability::ApprovedMembers) {
+            body.push_back({"show_join_question", m_showJoinQuestion});
+            if (m_showJoinQuestion) {
+                body.push_back({"join_question", {{"text", m_joinQuestion}, {"type", "join_reason/questions/text"}}});
+            }
+        }
+        std::cout << body.dump(4) << std::endl;
 
         BasicChat::Result returnValue = BasicChat::Result::Failure;
 
         m_client.request(web::http::methods::POST, uri_builder.to_string(), body.dump(), "application/json").then([this, &returnValue](const web::http::http_response &response) -> void {
-            
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }

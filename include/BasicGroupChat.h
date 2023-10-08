@@ -35,7 +35,6 @@ namespace GroupMe {
      */
     class BasicGroupChat : public BasicChat {
         public:
-            
             /**
              * @brief Constructs a new `GroupMe::BasicGroupChat` object
              *

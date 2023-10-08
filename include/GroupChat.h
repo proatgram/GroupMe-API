@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <variant>
+
 #include "BasicGroupChat.h"
 #include "SubGroupChat.h"
 
@@ -29,6 +31,30 @@ namespace GroupMe {
     class GroupChat final : public BasicGroupChat {
         public:
             /**
+             * @brief The permissions for editing the group settings
+             *
+             * - Private
+             *      Anyone in the group can edit the permissions
+             * - Closed
+             *      Only Admins can edit the group settings
+             */
+            enum class GroupPermissions {
+                Closed,
+                Private
+            };
+
+            /**
+             * @brief The permissions for deleting messages in the group
+             *
+             */
+            enum class DeletionPermissions {
+                Nobody,
+                Admin,
+                Author,
+                Both
+            };
+            
+            /**
              * @brief The visibility / joinability of the groups
              *
              */
@@ -36,6 +62,11 @@ namespace GroupMe {
                 Public,
                 Private,
                 Hidden
+            };
+
+            enum class Joinability {
+                ApprovedMembers,
+                Anyone
             };
 
             /**
@@ -240,12 +271,125 @@ namespace GroupMe {
             GroupMe::GroupChat::VisibilityType getVisibility() const;
 
             /**
+             * @brief Sets the Group Permissions for the group
+             *
+             * @param permissions
+             *
+             * @return void
+             *
+             */
+            void setGroupPermissions(const GroupChat::GroupPermissions &permissions);
+
+            /**
+             * @brief Gets the Group Permissions for the group
+             *
+             * @return GroupChat::GroupPermissions
+             *
+             */
+            GroupChat::GroupPermissions getGroupPermissions() const;
+
+            /**
+             * @brief Sets the Group Deletion Permissions for messages
+             *
+             * @param permissions
+             *
+             * @return void
+             *
+             */
+            void setDeletionPermissions(const GroupChat::DeletionPermissions &permissions);
+
+            /**
+             * @brief Gets the Group Deletion Permissions for messages
+             *
+             * @return GroupChat::DeletionPermissions
+             *
+             */
+            GroupChat::DeletionPermissions getDeletionPermissions() const;
+
+            /**
+             * @brief Sets who can join the group
+             *
+             * @param memberType
+             *
+             * @return void
+             *
+             */
+            void setJoinability(const GroupChat::Joinability &memberType);
+
+            /**
+             * @brief Gets who can join the group
+             *
+             * @return GroupChat::Joinability
+             *
+             */
+            GroupChat::Joinability getJoinability() const;
+
+            /**
+             * @brief Changes if the group requires approval
+             * from an admin to join the group.
+             *
+             * @param requiresApproval
+             *
+             * @return void
+             *
+             */
+            void setRequiresApproval(bool requiresApproval);
+
+            /**
+             * @brief Gets the approval mode
+             *
+             * @return bool
+             *
+             */
+            bool getRequiresApproval() const;
+
+            /**
+             * @brief Sets if it should show a join
+             * question to new members requesting to
+             * join the group
+             *
+             * @param showJoinQuestion
+             *
+             * @return void
+             *
+             */
+            void setShowJoinQuestion(bool showJoinQuestion);
+
+            /**
+             * @brief Gets if it should show a join
+             * question to new members requesting to
+             * join the group
+             *
+             * @return bool
+             *
+             */
+            bool getShowJoinQuestion() const;
+
+            /**
+             * @brief Sets a join question
+             *
+             * @param question
+             *
+             * @return void
+             *
+             */
+            void setJoinQuestion(const std::string &question);
+
+            /**
+             * @brief Gets the join question
+             *
+             * @return const std::list<std::string>&
+             *
+             */
+            const std::string& getJoinQuestion() const;
+
+            /**
              * @brief Gets the SubGroups of this GroupChat
              *
              * @return `std::list<SubGroupChat>`
              *
              */
-            const std::list<std::shared_ptr<SubGroupChat>>& getSubGroups() const;
+            const std::list<std::unique_ptr<SubGroupChat>>& getSubGroups() const;
 
             /**
              * @brief Creates a SubGroup for this GroupChat
@@ -255,6 +399,7 @@ namespace GroupMe {
              * @param description The description for the SubGroup
              *
              * @return pplx::task<BasicChat::Result> The return of the concurrent task will be the result of the operation
+             *
              */
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> createSubGroup(const std::string &topic, const std::string &description = "");
@@ -268,7 +413,8 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> destroySubGroup(const std::string &subGroupId);
+            pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+            destroySubGroup(const std::string &subGroupId);
 
             /**
              * @brief Deletes a SubGroup for this GroupChat
@@ -279,7 +425,8 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> destroySubGroup(const GroupMe::SubGroupChat &subGroupChat);
+            pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+            destroySubGroup(const GroupMe::SubGroupChat &subGroupChat);
 
             /**
              * @brief Deletes a SubGroup for this GroupChat
@@ -290,7 +437,8 @@ namespace GroupMe {
              *
              */
             [[nodiscard("Manage the task")]]
-            pplx::task<BasicChat::Result> destroySubGroup(const std::shared_ptr<GroupMe::SubGroupChat> &subGroupChat);
+            pplx::task<std::variant<std::list<std::unique_ptr<GroupMe::SubGroupChat>>::iterator, BasicChat::Result>> 
+            destroySubGroup(const std::unique_ptr<GroupMe::SubGroupChat> &subGroupChat);
 
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> update() final;
@@ -308,12 +456,24 @@ namespace GroupMe {
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessagesSince(const GroupMe::Message &sinceMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
 
+            bool m_requiresApproval;
+
+            bool m_showJoinQuestion;
+
+            std::string m_joinQuestion;
+
             GroupMe::GroupChat::VisibilityType m_groupVisibility;
+
+            GroupMe::GroupChat::DeletionPermissions m_messageDeletionMode;
+
+            GroupMe::GroupChat::GroupPermissions m_groupType;
+
+            GroupMe::GroupChat::Joinability m_groupJoinability;
 
             std::shared_ptr<GroupMe::User> m_groupCreator;
 
             std::string m_groupShareUrl;
 
-            std::list<std::shared_ptr<SubGroupChat>> m_subgroups;
+            std::list<std::unique_ptr<SubGroupChat>> m_subgroups;
     };
 }

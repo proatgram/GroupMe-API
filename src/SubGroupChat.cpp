@@ -54,8 +54,8 @@ std::string SubGroupChat::getParentId() const {
     return m_parentChatId;
 }
 
-std::shared_ptr<SubGroupChat> SubGroupChat::createFromJson(const nlohmann::json &json, const std::shared_ptr<UserSet> &members, const std::string &accessToken) {
-    std::shared_ptr<SubGroupChat> subgroup = std::make_shared<SubGroupChat>();
+std::unique_ptr<SubGroupChat> SubGroupChat::createFromJson(const nlohmann::json &json, const std::shared_ptr<UserSet> &members, const std::string &accessToken) {
+    std::unique_ptr<SubGroupChat> subgroup = std::make_unique<SubGroupChat>();
 
     subgroup->m_parentChatId = std::to_string(json.at("parent_id").get<unsigned long long int>());
     subgroup->m_chatId = std::to_string(json.at("id").get<unsigned long long int>());
