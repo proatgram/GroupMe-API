@@ -63,6 +63,16 @@ Picture::Picture(const std::string& accessToken, const web::uri& contentURL) :
     });
 }
 
+Picture::Picture(const web::uri &contentURL) :
+    Attachment(contentURL, Attachment::Types::Picture),
+    m_client(m_content),
+    m_task(pplx::task<void>([]() -> void {}))
+{
+    // TODO: Check if subdomain is equal
+    // to i (e.g. https://*i*.groupme.com)
+    m_content = contentURL.to_string();
+}
+
 Picture::Picture(const Picture& other) :
     Attachment(other),
     m_request(other.m_request),
@@ -91,6 +101,11 @@ Picture& Picture::operator=(const Picture& other) {
 pplx::task<std::string> Picture::upload() {
     m_task.wait();
 
+    // Prevents from re-upload
+    if (!m_content.empty()) {
+        return pplx::task<std::string>([m_content = m_content]() -> std::string {return m_content;});
+    }
+
     return pplx::task<std::string>([this]() -> std::string {
         m_request.set_body(m_contentBinary);
         m_client.request(m_request).then([this](const web::http::http_response& response) -> void {
@@ -107,4 +122,17 @@ pplx::task<std::string> Picture::upload() {
         }).wait();
         return m_content;
     });
+}
+
+nlohmann::json Picture::toJson() const {
+    if (m_content.empty()) {
+        return {};
+    }
+
+    nlohmann::json json;
+    
+    json["type"] = "image";
+    json["url"] = m_content;
+
+    return json;
 }

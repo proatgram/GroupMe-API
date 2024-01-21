@@ -85,11 +85,8 @@ pplx::task<BasicChat::Result> SubGroupChat::queryMessages(unsigned int messageCo
         uri_builder.append_query("limit", messageCount);
         uri_builder.append_query("token", m_accessToken);
 
-        std::cout << uri_builder.to_string() << std::endl;
-
         BasicChat::Result returnValue = BasicChat::Result::Failure;
         m_client.request(web::http::methods::GET, uri_builder.to_string()).then([this, &returnValue](const web::http::http_response &response) -> void {
-            std::cout << response.to_string() << std::endl;
             if (response.status_code() != web::http::status_codes::OK) {
                 return;
             }
@@ -198,6 +195,28 @@ pplx::task<BasicChat::Result> SubGroupChat::queryMessagesSince(const Message &si
             returnValue = BasicChat::Result::Success;
         }).wait();
         return returnValue;
+    });
+}
+
+pplx::task<BasicChat::Result> SubGroupChat::sendMessage(const Message &message) {
+    return pplx::task<BasicChat::Result>([this, message = message.toJson()]() -> BasicChat::Result {
+        std::lock_guard<std::mutex> lock(m_mutex);
+
+        web::uri_builder uri_builder(GROUP_ENDPOINT_QUERY.data());
+
+        uri_builder.append_path(m_chatId);
+        uri_builder.append_path("messages");
+
+        uri_builder.append_query("token", m_accessToken);
+
+        web::http::http_response response = m_client.request(web::http::methods::POST, uri_builder.to_string(), message.dump(), "application/json").get();
+
+        if (response.status_code() == web::http::status_codes::Created) {
+            return BasicChat::Result::Success;
+        }
+
+        return BasicChat::Result::Failure;
+        
     });
 }
 

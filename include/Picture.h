@@ -39,7 +39,7 @@ namespace GroupMe {
      * @brief A class used to hold a Picture attatchment
      *
      */
-    class Picture : public Attachment {
+    class Picture final : public Attachment {
         public:
             /**
              * This constructor should be used when you want to upload a
@@ -68,6 +68,16 @@ namespace GroupMe {
              */
             Picture(const std::string& accessToken, const web::uri& contentURL);
 
+            /**
+             * This constructor should be used when you already have a
+             * picture uploaded to the GroupMe image services.
+             *
+             * @brief Constructs a new `GroupMe::Picture` object
+             *
+             * @param contentURL A pre-uploaded URL for the picture
+             */
+            explicit Picture(const web::uri &contentURL);
+
             Picture(const Picture& other);
 
             Picture(Picture&& other) = delete;
@@ -94,6 +104,12 @@ namespace GroupMe {
              *
              */
             pplx::task<std::string> upload();
+
+            /**
+             * @brief Constructs an `nlohmann::json` object from this attachment
+             *
+             */
+            nlohmann::json toJson() const final;
 
         private:
             web::http::http_request m_request;

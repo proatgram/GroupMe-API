@@ -114,6 +114,14 @@ namespace GroupMe {
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
 
+            /**
+             * Send a message in the group
+             *
+             * See `GroupMe::Message` for more info
+             */
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> sendMessage(const Message& message) final;
+
         private:
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessagesBefore(const GroupMe::Message &beforeMessage, unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;

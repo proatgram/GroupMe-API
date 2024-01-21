@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <list>
 #include <variant>
 
 #include "BasicGroupChat.h"
@@ -396,7 +397,7 @@ namespace GroupMe {
             /**
              * @brief Gets the SubGroups of this GroupChat
              *
-             * @return `std::list<SubGroupChat>`
+             * @return `std::list<std::shared_ptr<SubGroupChat>>`
              *
              */
             const std::list<std::shared_ptr<SubGroupChat>>& getSubGroups() const;
@@ -458,6 +459,14 @@ namespace GroupMe {
 
             [[nodiscard("Manage the task")]]
             pplx::task<BasicChat::Result> queryMessages(unsigned int messageCount = DEFAULT_QUERY_LENGTH) final;
+
+            /**
+             * Send a message in the group
+             *
+             * See `GroupMe::Message` for more info
+             */
+            [[nodiscard("Manage the task")]]
+            pplx::task<BasicChat::Result> sendMessage(const Message& message) final;
 
         private:
             [[nodiscard("Manage the task")]]

@@ -16,25 +16,25 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
+#include <fstream>
+#include <thread>
+#include <chrono>
 #include "File.h"
 
 using namespace GroupMe;
 
 // This function just creates a url from two strings. Saves me a lot of pain.
-std::string File::getURL(std::string conversationID, std::string filename) {
+std::string File::getURL(const std::string &conversationID, const std::string &filename) {
     std::string url = "https://file.groupme.com/v1/[GROUP_ID]/files?name=[FILE_NAME]";
     url.replace(url.find("[GROUP_ID]"), 10, conversationID);
     url.replace(url.find("[FILE_NAME]"), 11, filename);
     return url;
 }
 
-
-File::File(std::string accessToken, std::filesystem::path path, std::string conversationID) :
+File::File(const std::string &accessToken, const std::filesystem::path &path, const std::string &conversationID) :
     Attachment(path, Attachment::Types::File, accessToken),
-    m_request(),
     m_conversationID(conversationID),
-    m_task(),
-    m_json(),
     m_client(getURL(m_conversationID, path.filename().string()))
 {
     if (!std::filesystem::exists(path)) {
@@ -57,12 +57,9 @@ File::File(std::string accessToken, std::filesystem::path path, std::string conv
     });
 }
 
-File::File(std::string accessToken, std::vector<unsigned char> contentVector, std::string conversationID) :
+File::File(const std::string &accessToken, const std::vector<unsigned char> &contentVector, const std::string &conversationID) :
     Attachment(contentVector, Attachment::Types::File, accessToken),
-    m_request(),
     m_conversationID(conversationID),
-    m_task(),
-    m_json(),
     m_client(getURL(m_conversationID, "file"))
 {
     m_contentBinary = contentVector;
@@ -78,25 +75,22 @@ File::File(std::string accessToken, std::vector<unsigned char> contentVector, st
     });
 }
 
-File::File(std::string accessToken, web::uri contentURL, std::string conversationID) :
+File::File(const std::string &accessToken, const web::uri &contentURL, const std::string &conversationID) :
     Attachment(contentURL, Attachment::Types::File, accessToken),
-    m_request(),
     m_conversationID(conversationID),
-    m_task(),
-    m_json(),
     m_client(contentURL)
 {
     m_task = pplx::task<void>([this, contentURL]() -> void {
         m_request.set_method(web::http::methods::GET);
 
-        m_client.request(m_request).then([this](web::http::http_response response) {
+        m_client.request(m_request).then([this](const web::http::http_response &response) {
             std::stringstream strm;
 
             strm << response.extract_string(true).get();
 
             m_contentBinary.assign(std::istreambuf_iterator<char>(strm), std::istreambuf_iterator<char>());
         }).wait();
-        m_client = web::http::client::http_client(getURL(m_conversationID, contentURL.split_path(contentURL.path()).at(contentURL.split_path(contentURL.path()).size() - 1)));
+        m_client = web::http::client::http_client(getURL(m_conversationID, web::uri::split_path(contentURL.path()).at(web::uri::split_path(contentURL.path()).size() - 1)));
         m_request.set_body("");
 
         m_request.set_method(web::http::methods::POST);
@@ -108,12 +102,47 @@ File::File(std::string accessToken, web::uri contentURL, std::string conversatio
     });
 }
 
+File::File(const std::string &fileId) :
+    Attachment(fileId, Attachment::Types::File),
+    m_client(m_content),
+    m_task(pplx::task<void>([]() -> void {}))
+{
+
+}
+
 File::~File() {
     m_task.wait();
 }
 
+File::File(const File &other) :
+    Attachment(other.m_content, other.m_type),
+    m_request(other.m_request),
+    m_client(other.m_client),
+    m_json(other.m_json),
+    m_task(other.m_task)
+{
+
+}
+
+File& File::operator=(const File& other) {
+    if(this != &other) {
+        Attachment::operator=(other);
+        m_request = other.m_request;
+        m_client = other.m_client;
+        m_json = other.m_json;
+        m_task = other.m_task;
+    }
+
+    return *this;
+}
+
 pplx::task<std::string> File::upload() {
     m_task.wait();
+
+    // Prevents from re-upload
+    if (!m_content.empty()) {
+        return pplx::task<std::string>([m_content = m_content]() -> std::string {return m_content;});
+    }
 
     m_request.set_body(m_contentBinary);
 
@@ -134,7 +163,7 @@ pplx::task<std::string> File::upload() {
         bool done = false;
 
         while(!done) {
-            m_client.request(m_request).then([&done, this](web::http::http_response response) {
+            m_client.request(m_request).then([&done, this](const web::http::http_response &response) {
                 if (response.status_code() == web::http::status_codes::OK) {
 
                     std::string content;
@@ -158,4 +187,17 @@ pplx::task<std::string> File::upload() {
         }
         return m_content;
     });
+}
+
+nlohmann::json File::toJson() const {
+    if (m_content.empty()) {
+        return {};
+    }
+    
+    nlohmann::json json;
+
+    json["type"] = "file";
+    json["file_id"] = m_content;
+
+    return json;
 }

@@ -21,19 +21,10 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-#include <cstdio>
-#include <cstdint>
-#include <exception>
-#include <thread>
-#include <chrono>
 
 #include <nlohmann/json.hpp>
 
 #include "Attachment.h"
-#include "util/Exceptions.h"
 
 namespace GroupMe {
     /**
@@ -43,7 +34,7 @@ namespace GroupMe {
      * @brief A class used to hold a File attatchment
      *
      */
-    class File : public Attachment {
+    class File final : public Attachment {
         public:
             /**
              * This constructor should be used when you want to upload a
@@ -57,7 +48,7 @@ namespace GroupMe {
              * @param conversationID The ID of the conversation to upload the file to
              *
              */
-            File(std::string accessToken, std::filesystem::path path, std::string conversationID);
+            File(const std::string &accessToken, const std::filesystem::path &path, const std::string &conversationID);
 
             //TODO Add name paremeter
             /**
@@ -71,7 +62,7 @@ namespace GroupMe {
              * @param conversationID The ID of the conversation to upload the file to
              *
              */
-            File(std::string accessToken, std::vector<unsigned char> contentVector, std::string conversationID);
+            File(const std::string &accessToken, const std::vector<unsigned char> &contentVector, const std::string &conversationID);
 
             /**
              * This constructor should be used when you want to upload a
@@ -86,7 +77,26 @@ namespace GroupMe {
              * @param conversationID The ID of the conversation to upload the file to
              *
              */
-            File(std::string accessToken, web::uri contentURL, std::string conversationID);
+            File(const std::string &accessToken, const web::uri &contentURL, const std::string &conversationID);
+
+            /**
+             * This constructor should be used when you already have a
+             * file uploaded to the GroupMe file services.
+             *
+             * @brief Constructs a new `GroupMe::File` object
+             *
+             * @param fileId A pre-uploaded URL for the file
+             *
+             */
+            explicit File(const std::string &fileId);
+
+            File(const File &other);
+
+            File(File &&other) noexcept = delete;
+
+            File& operator=(const File &other);
+
+            File& operator=(File &&other) noexcept = delete;
 
             ~File();
 
@@ -107,10 +117,16 @@ namespace GroupMe {
              */
             pplx::task<std::string> upload();
 
+            /**
+             * @brief Constructs an `nlohmann::json` object from this attachment
+             *
+             */
+            nlohmann::json toJson() const final;
+
         private:
 
             // This function creates a url from two strings. Saves me a lot of pain
-            static std::string getURL(std::string conversationID, std::string filename);
+            static std::string getURL(const std::string &conversationID, const std::string &filename);
 
             web::http::http_request m_request;
 

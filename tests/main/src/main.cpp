@@ -22,6 +22,8 @@
 
 #include "GroupChat.h"
 
+#include "File.h"
+
 int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
     GroupMe::GroupChat achat("", "");
     GroupMe::GroupChat chat(std::move(achat));
@@ -29,16 +31,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
     std::cout << "Group name: " << chat.getName() << std::endl;
     chat.queryMessages().wait();
 
-    std::cout << "Creating subgroup / topic" << std::endl;
-    chat.createSubGroup("Subgroup").wait();
+    std::shared_ptr<GroupMe::File> file = std::make_shared<GroupMe::File>("", std::filesystem::path(""), "");
+    std::cout << file->upload().get() << std::endl;
+    GroupMe::Message message("Message", "");
 
-    std::vector<std::shared_ptr<GroupMe::SubGroupChat>> groupchats;
+    message.attach(file);
+    chat.sendMessage(message).wait();
+
     for (const auto &subgroup : chat.getSubGroups()) {
-        groupchats.push_back(subgroup);
-        std::cout << subgroup->getName() << std::endl;
-    }
-    for (const auto &subgroup : groupchats) {
-        chat.destroySubGroup(subgroup).wait();
+        subgroup->sendMessage(message).wait();
     }
 
     return EXIT_SUCCESS;

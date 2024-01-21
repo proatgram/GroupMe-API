@@ -16,6 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "Picture.h"
+#include "Video.h"
+#include "File.h"
+
 #include "Message.h"
 
 using namespace GroupMe;
@@ -117,17 +121,33 @@ Message Message::createFromJson(const nlohmann::json &json, const UserSet &users
         // Parses attachment data from the Json and constructs attachments accordingly
         for (const auto& attachment : json["attachments"]) {
             if (attachment["type"] == "image") {
-                message.attach(Attachment(web::uri(std::string(attachment["url"])), Attachment::Types::Picture));
+                message.attach(std::make_shared<Picture>(web::uri(std::string(attachment["url"]))));
             }
             else if (attachment["type"] == "file") {
-                message.attach(Attachment(std::string(attachment["file_id"]), Attachment::Types::File));
+                message.attach(std::make_shared<File>(std::string(attachment["file_id"])));
             }
             else if (attachment["type"] == "video") {
-                message.attach(Attachment(std::string(attachment["url"]), Attachment::Types::Video));
+                message.attach(std::make_shared<Video>(std::string(attachment["url"]), std::string(attachment["preview_url"])));
             }
         }
     }
     return message;
+}
+
+nlohmann::json Message::toJson() const {
+    nlohmann::json json;
+    
+    json["message"]["source_guid"] = m_guid;
+
+    if (!m_text.empty()) {
+        json["message"]["text"] = m_text;
+    }
+
+    for (int i = 0; i < m_attachments.size(); i++) {
+        json["message"]["attachments"][i] = m_attachments.at(i)->toJson();
+    }
+
+    return json;
 }
 
 std::string Message::getID() const {
@@ -154,11 +174,11 @@ void Message::attach(const std::string& messageText) {
     m_text = messageText;
 }
 
-void Message::attach(const GroupMe::Attachment& messageAttachment) {
+void Message::attach(const std::shared_ptr<GroupMe::Attachment>& messageAttachment) {
     m_attachments.push_back(messageAttachment);
 }
 
-const std::vector<GroupMe::Attachment>& Message::getAttachments() const {
+const std::vector<std::shared_ptr<GroupMe::Attachment>>& Message::getAttachments() const {
     return m_attachments;
 }
 

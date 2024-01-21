@@ -18,17 +18,10 @@
 
 #pragma once
 
-#include <cstdio>
-#include <cstdlib>
 #include <string>
 #include <filesystem>
 #include <vector>
-#include <memory>
 #include <nlohmann/json.hpp>
-#include <sstream>
-#include <algorithm>
-#include <thread>
-#include <chrono>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -37,8 +30,6 @@ extern "C" {
 
 #include "Attachment.h"
 #include "util/multipart_parser.h"
-#include "util/Exceptions.h"
-#include "util/AVFileMem.h"
 
 namespace GroupMe {
     /**
@@ -48,7 +39,7 @@ namespace GroupMe {
      * @brief A class used to hold a Video attatchment
      *
      */
-    class Video : public Attachment {
+    class Video final : public Attachment {
         public:
             /**
              * This constructor should be used when you want to upload a
@@ -92,15 +83,29 @@ namespace GroupMe {
              */
             Video(const std::string& accessToken, const web::uri& contentURL, const std::string& conversationID);
 
+            /**
+             * This constructor should be used when you already have a
+             * file uploaded to the GroupMe video services.
+             *
+             * @brief Constructs a new `GroupMe::Video` object
+             *
+             * @param contentURL A pre-uploaded URL for the video
+             *
+             * @param previewURL A pre-generated URL for the preview image
+             * of the video
+             *
+             */
+            explicit Video(const web::uri &contentURL, const web::uri &previewURL = "");
+
             Video(const Video& other);
 
-            Video(Video&& other) = delete;
+            Video(Video&& other) noexcept = delete;
 
             ~Video();
 
             Video& operator=(const Video& other);
 
-            Video& operator=(Video&& other) = delete;
+            Video& operator=(Video&& other) noexcept = delete;
 
             /**
              * This member function will upload the video to the GroupMe
@@ -119,6 +124,12 @@ namespace GroupMe {
              */
             pplx::task<std::string> upload();
 
+            /**
+             * @brief Constructs an `nlohmann::json` object from this attachment
+             *
+             */
+            nlohmann::json toJson() const final;
+
         private:
             web::http::http_request m_request;
 
@@ -127,6 +138,8 @@ namespace GroupMe {
             web::http::MultipartParser m_parser;
 
             std::string m_conversationID;
+
+            std::string m_previewUrl;
 
             pplx::task<void> m_task;
 

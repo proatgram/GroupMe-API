@@ -18,13 +18,9 @@
 
 #pragma once
 
-#include <list>
-#include <memory>
-#include <map>
-#include <thread>
-#include <chrono>
-#include <utility>
 #include <nlohmann/json.hpp>
+
+#include "Picture.h"
 
 #include "BasicChat.h"
 
@@ -111,7 +107,7 @@ namespace GroupMe {
              * Sets the groups image to the image
              *
              * This will attempt to upload the image to GroupMe's servers
-             * to use in the GroupChat.
+             * to use in the GroupChat if it's not already uploaded.
              *
              * @brief Sets the groups image
              *

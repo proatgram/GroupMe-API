@@ -23,9 +23,6 @@
 #include <nlohmann/json.hpp>
 
 #include "Attachment.h"
-#include "Picture.h"
-#include "Video.h"
-#include "File.h"
 #include "User.h"
 #include "UserSet.hpp"
 
@@ -119,6 +116,12 @@ namespace GroupMe {
             static Message createFromJson(const nlohmann::json &json, const GroupMe::UserSet &user);
 
             /**
+             * @brief Constructs an `nlohmann::json` object from this message
+             *
+             */
+            nlohmann::json toJson() const;
+
+            /**
              * @brief Gets the ID of the message
              *
              * @return std::string
@@ -172,15 +175,15 @@ namespace GroupMe {
              * @param messageAttachment The new attatchment to add
              *
              */
-            void attach(const GroupMe::Attachment& messageAttachment);
+            void attach(const std::shared_ptr<GroupMe::Attachment>& messageAttachment);
 
             /**
              * @brief Gets the attachments that have been attached to the message
              *
-             * @return const std::vector<GroupMe::Attatchment>&
+             * @return const std::vector<std::shared_ptr<GroupMe::Attatchment>>&
              *
              */
-            const std::vector<GroupMe::Attachment>& getAttachments() const;
+            const std::vector<std::shared_ptr<GroupMe::Attachment>>& getAttachments() const;
 
             /**
              * @brief Gets the user info for the sender of the message
@@ -267,7 +270,7 @@ namespace GroupMe {
 
             std::shared_ptr<GroupMe::User> m_sender;
 
-            std::vector<GroupMe::Attachment> m_attachments;
+            std::vector<std::shared_ptr<GroupMe::Attachment>> m_attachments;
 
             std::vector<std::shared_ptr<GroupMe::User>> m_favoritedBy;
 

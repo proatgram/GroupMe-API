@@ -18,14 +18,12 @@
 
 #pragma once
 
-#include <cstdio>
-#include <cstdlib>
 #include <string>
 #include <filesystem>
-#include <memory>
 
 #include <cpprest/http_client.h>
 #include <cpprest/uri.h>
+#include <nlohmann/json.hpp>
 
 namespace GroupMe {
     /**
@@ -160,6 +158,12 @@ namespace GroupMe {
              *
              */
             void setContentURL(const web::uri &url);
+
+            /**
+             * @brief Constructs an `nlohmann::json` object from this attachment
+             *
+             */
+            virtual nlohmann::json toJson() const = 0;
 
         protected:
 
